@@ -47,17 +47,29 @@
     .ai-result-scroll { padding: 1.25rem; }
     .detail-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
     .detail-table .col-wrap { word-break: break-word; overflow-wrap: anywhere; }
-    .detail-table-head th { background-color: #f8fafc; }
+    .detail-table-head th { background-color: #f8fafc; cursor: pointer; user-select: none; }
+    .detail-table-head th:hover { background-color: #f1f5f9; }
+    .detail-table-head th.sort-active { color: #2563eb; }
+    .ai-result > *:first-child { margin-top: 0; }
+    .ai-result > *:last-child { margin-bottom: 0; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 antialiased">
 
   <div class="max-w-6xl mx-auto w-full bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-      <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        AI工数アナライザー (Powered by GB10)
-      </h2>
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span>AI工数アナライザー</span>
+          <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded"></span>
+          <span id="headerProviderLabel" class="text-sm font-normal text-blue-100">(GB10)</span>
+        </h2>
+        <button type="button" onclick="openSettingsModal()" title="AI設定（デバッグ）"
+          class="shrink-0 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+      </div>
     </div>
 
     <div class="p-6">
@@ -150,7 +162,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p id="statusText" class="text-slate-600 font-medium animate-pulse">GB10モデルがデータを分析中...</p>
+        <p id="statusText" class="text-slate-600 font-medium animate-pulse">AIがデータを分析中...</p>
       </div>
 
       <div id="resultArea" class="hidden mt-6">
@@ -199,9 +211,107 @@
     </div>
   </div>
 
+  <!-- AI設定モーダル（デバッグ・比較用） -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50" onclick="closeSettingsModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl sticky top-0">
+        <h3 class="text-base font-bold text-slate-800">AI設定（デバッグ）</h3>
+        <button type="button" onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">使用するAI</label>
+          <select id="settingProvider" onchange="toggleProviderFields()"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="gb10">GB10（社内）</option>
+            <option value="gemini">Gemini（Google）</option>
+            <option value="lmstudio">LM Studio（ローカルPC）</option>
+          </select>
+        </div>
+
+        <fieldset id="settingGb10Fields" class="space-y-3 border border-slate-200 rounded-lg p-4">
+          <legend class="text-sm font-semibold text-slate-600 px-1">GB10</legend>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">API URL</label>
+            <input id="settingGb10Url" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <p class="text-xs text-slate-400 mt-1">社内閉域網の OpenAI 互換 API（例: http://172.16.x.x:3000/...）</p>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">モデル名</label>
+            <input id="settingGb10Model" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">API Key</label>
+            <input id="settingGb10ApiKey" type="password" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+        </fieldset>
+
+        <fieldset id="settingGeminiFields" class="hidden space-y-3 border border-slate-200 rounded-lg p-4">
+          <legend class="text-sm font-semibold text-slate-600 px-1">Gemini</legend>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">API Key</label>
+            <input id="settingGeminiApiKey" type="password" placeholder="AIza..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">モデル名</label>
+            <input id="settingGeminiModel" type="text" placeholder="gemini-2.5-flash-lite" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <p class="text-xs text-slate-400 mt-1">例: gemini-2.5-flash-lite（models/ プレフィックス不要）</p>
+          </div>
+        </fieldset>
+
+        <fieldset id="settingLmStudioFields" class="hidden space-y-3 border border-slate-200 rounded-lg p-4">
+          <legend class="text-sm font-semibold text-slate-600 px-1">LM Studio</legend>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">API URL</label>
+            <input id="settingLmStudioUrl" type="text" placeholder="http://localhost:1234/v1/chat/completions" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">モデル名</label>
+            <input id="settingLmStudioModel" type="text" placeholder="ロード中のモデル名" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">API Key（任意）</label>
+            <input id="settingLmStudioApiKey" type="password" placeholder="lm-studio" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          </div>
+        </fieldset>
+
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">最大出力トークン数（短いほど高速）</label>
+          <input id="settingMaxTokens" type="number" min="256" max="4096" step="128" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        <p class="text-xs text-slate-400">設定はブラウザの localStorage に保存されます（デバッグ・比較用）。</p>
+
+        <button type="button" onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
+          設定を保存
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const APP_VERSION = '1.1.0';
+
     let allRecords = [];
     let cachedSummaryText = '';
+    let detailModalState = { records: [], columns: [], sortKey: 'workDate', sortDir: 'asc' };
+
+    const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null };
+    const DEFAULT_AI_SETTINGS = {
+      provider: 'gb10',
+      gb10Url: 'http://172.16.4.223:3000/api/v1/chat/completions',
+      gb10Model: 'qwen3.6-35b-a3b:fp8',
+      gb10ApiKey: 'sk-b7e20c47c19747cb83fa41e44e0a77fa',
+      geminiApiKey: '',
+      geminiModel: 'gemini-2.5-flash-lite',
+      lmStudioUrl: 'http://localhost:1234/v1/chat/completions',
+      lmStudioModel: '',
+      lmStudioApiKey: 'lm-studio',
+      maxTokens: 800
+    };
 
     const DETAIL_COLUMNS = {
       staff: [
@@ -223,17 +333,113 @@
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ]
     };
-    // GB10 (オンプレLLM) の設定
-    const GB10_URL = "http://172.16.4.223:3000/api/v1/chat/completions";
-    const GB10_MODEL = "qwen3.6-35b-a3b:fp8";
-    const GB10_API_KEY = "sk-b7e20c47c19747cb83fa41e44e0a77fa";
+    const PROVIDER_LABELS = { gb10: 'GB10', gemini: 'Gemini', lmstudio: 'LM Studio' };
+    const DEPRECATED_GEMINI_MODELS = {
+      'gemini-2.0-flash': 'gemini-2.5-flash',
+      'gemini-2.0-flash-lite': 'gemini-2.5-flash-lite',
+      'gemini-pro': 'gemini-2.5-flash',
+      'gemini-1.5-pro': 'gemini-2.5-pro',
+      'gemini-1.5-flash': 'gemini-2.5-flash'
+    };
+
+    function normalizeGeminiModel(model) {
+      if (!model) return '';
+      var m = String(model).trim();
+      if (m.indexOf('models/') === 0) m = m.slice(7);
+      m = m.replace(/^\/+|\/+$/g, '');
+      var colonIdx = m.indexOf(':');
+      if (colonIdx > 0) m = m.slice(0, colonIdx);
+      if (DEPRECATED_GEMINI_MODELS[m]) m = DEPRECATED_GEMINI_MODELS[m];
+      return m;
+    }
+
+    function resolveGeminiModel(model) {
+      var normalized = normalizeGeminiModel(model || DEFAULT_AI_SETTINGS.geminiModel);
+      if (!normalized) normalized = DEFAULT_AI_SETTINGS.geminiModel;
+      if (!/^[a-z0-9][a-z0-9._-]*$/i.test(normalized)) {
+        throw new Error('Gemini モデル名の形式が不正です。例: gemini-2.5-flash-lite（models/ は付けない）');
+      }
+      return normalized;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
+      loadSettingsToForm();
+      updateHeaderProviderLabel();
+    });
+
+    function getAiSettings() {
+      try {
+        var saved = JSON.parse(localStorage.getItem('aiSettings') || '{}');
+        var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved);
+        merged.geminiModel = normalizeGeminiModel(merged.geminiModel);
+        return merged;
+      } catch (_) {
+        return Object.assign({}, DEFAULT_AI_SETTINGS);
+      }
+    }
+
+    function updateHeaderProviderLabel() {
+      var s = getAiSettings();
+      document.getElementById('headerProviderLabel').textContent =
+        '(' + (PROVIDER_LABELS[s.provider] || s.provider) + ')';
+    }
+
+    function openSettingsModal() {
+      loadSettingsToForm();
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function toggleProviderFields() {
+      const p = document.getElementById('settingProvider').value;
+      document.getElementById('settingGb10Fields').classList.toggle('hidden', p !== 'gb10');
+      document.getElementById('settingGeminiFields').classList.toggle('hidden', p !== 'gemini');
+      document.getElementById('settingLmStudioFields').classList.toggle('hidden', p !== 'lmstudio');
+    }
+
+    function loadSettingsToForm() {
+      const s = getAiSettings();
+      document.getElementById('settingProvider').value = s.provider;
+      document.getElementById('settingGb10Url').value = s.gb10Url;
+      document.getElementById('settingGb10Model').value = s.gb10Model;
+      document.getElementById('settingGb10ApiKey').value = s.gb10ApiKey;
+      document.getElementById('settingGeminiApiKey').value = s.geminiApiKey;
+      document.getElementById('settingGeminiModel').value = s.geminiModel;
+      document.getElementById('settingLmStudioUrl').value = s.lmStudioUrl;
+      document.getElementById('settingLmStudioModel').value = s.lmStudioModel;
+      document.getElementById('settingLmStudioApiKey').value = s.lmStudioApiKey;
+      document.getElementById('settingMaxTokens').value = s.maxTokens;
+      toggleProviderFields();
+    }
+
+    function saveSettings() {
+      const settings = {
+        provider: document.getElementById('settingProvider').value,
+        gb10Url: document.getElementById('settingGb10Url').value.trim(),
+        gb10Model: document.getElementById('settingGb10Model').value.trim(),
+        gb10ApiKey: document.getElementById('settingGb10ApiKey').value.trim(),
+        geminiApiKey: document.getElementById('settingGeminiApiKey').value.trim(),
+        geminiModel: normalizeGeminiModel(document.getElementById('settingGeminiModel').value),
+        lmStudioUrl: document.getElementById('settingLmStudioUrl').value.trim(),
+        lmStudioModel: document.getElementById('settingLmStudioModel').value.trim(),
+        lmStudioApiKey: document.getElementById('settingLmStudioApiKey').value.trim(),
+        maxTokens: parseInt(document.getElementById('settingMaxTokens').value, 10) || 800
+      };
+      localStorage.setItem('aiSettings', JSON.stringify(settings));
+      updateHeaderProviderLabel();
+      closeSettingsModal();
+    }
 
     // ファイル選択時にボタンラベルを更新
     document.getElementById('fileInput').addEventListener('change', function(e) {
       if (e.target.files.length > 0) {
         const name = e.target.files[0].name;
-        document.querySelector('#aggregateBtn span').innerText = `「${name}」を集計する`;
-        document.getElementById('aiAnalyzeBtnLabel').innerText = `「${name}」を分析する`;
+        document.querySelector('#aggregateBtn span').innerText = '「' + name + '」を集計する';
+        document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + name + '」を分析する';
         showInitialUploadUI();
       }
     });
@@ -247,7 +453,7 @@
     function showPostAggregateUI(fileName) {
       document.getElementById('fileUploadArea').classList.add('hidden');
       document.getElementById('initialActionArea').classList.add('hidden');
-      document.getElementById('aiAnalyzeBtnLabel').innerText = `「${fileName}」を分析する`;
+      document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + fileName + '」を分析する';
       document.getElementById('aiAnalyzeBtn').classList.remove('hidden');
     }
 
@@ -363,6 +569,58 @@
       return '<col style="width:7rem"><col><col><col><col style="width:6rem">';
     }
 
+    function sortDetailRecords(records, sortKey, sortDir) {
+      return [...records].sort((a, b) => {
+        const va = a[sortKey] ?? '';
+        const vb = b[sortKey] ?? '';
+        let cmp;
+        if (sortKey === 'hours') {
+          cmp = va - vb;
+        } else {
+          cmp = String(va).localeCompare(String(vb), 'ja');
+        }
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    function renderDetailModalTable() {
+      const { records, columns, sortKey, sortDir } = detailModalState;
+      const sorted = sortDetailRecords(records, sortKey, sortDir);
+
+      document.getElementById('detailModalHead').innerHTML = columns.map(col => {
+        const isActive = col.key === sortKey;
+        const alignClass = col.align === 'right' ? ' text-right' : '';
+        const sortMark = isActive ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+        return `
+          <th scope="col"
+              class="col-wrap px-3 py-2 text-left text-xs font-medium uppercase tracking-wider border-b border-slate-200${alignClass}${isActive ? ' sort-active' : ' text-slate-500'}"
+              onclick="onDetailHeaderClick('${col.key}')"
+              title="クリックで並び替え">${col.label}${sortMark}</th>
+        `;
+      }).join('');
+
+      document.getElementById('detailModalBody').innerHTML = sorted.length === 0
+        ? `<tr><td colspan="${columns.length}" class="px-3 py-6 text-sm text-slate-400 text-center">詳細データがありません</td></tr>`
+        : sorted.map(r => `
+          <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+            ${columns.map(col => {
+              const val = col.format ? col.format(r[col.key]) : (r[col.key] || '');
+              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}">${escapeHtml(String(val))}</td>`;
+            }).join('')}
+          </tr>
+        `).join('');
+    }
+
+    function onDetailHeaderClick(sortKey) {
+      if (detailModalState.sortKey === sortKey) {
+        detailModalState.sortDir = detailModalState.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        detailModalState.sortKey = sortKey;
+        detailModalState.sortDir = sortKey === 'hours' ? 'desc' : 'asc';
+      }
+      renderDetailModalTable();
+    }
+
     function openDetailModal(row) {
       const tab = row.dataset.tab;
       const key = row.dataset.key;
@@ -373,10 +631,17 @@
         if (tab === 'worktype') return r.workType === key;
         if (tab === 'monthly') return r.monthKey === key;
         return false;
-      }).sort((a, b) => (a.workDate || '').localeCompare(b.workDate || ''));
+      });
 
-      const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
       const columns = DETAIL_COLUMNS[tab];
+      const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+
+      detailModalState = {
+        records,
+        columns,
+        sortKey: 'workDate',
+        sortDir: 'asc'
+      };
 
       document.getElementById('detailModalTitle').textContent = label;
       document.getElementById('detailModalSummary').textContent =
@@ -386,21 +651,7 @@
       document.getElementById('detailModalColgroupHead').innerHTML = colgroup;
       document.getElementById('detailModalColgroupBody').innerHTML = colgroup;
 
-      document.getElementById('detailModalHead').innerHTML = columns.map(col => `
-        <th scope="col" class="col-wrap px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-200${col.align === 'right' ? ' text-right' : ''}">${col.label}</th>
-      `).join('');
-
-      document.getElementById('detailModalBody').innerHTML = records.length === 0
-        ? `<tr><td colspan="${columns.length}" class="px-3 py-6 text-sm text-slate-400 text-center">詳細データがありません</td></tr>`
-        : records.map(r => `
-          <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
-            ${columns.map(col => {
-              const val = col.format ? col.format(r[col.key]) : (r[col.key] || '');
-              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}">${escapeHtml(String(val))}</td>`;
-            }).join('')}
-          </tr>
-        `).join('');
-
+      renderDetailModalTable();
       document.getElementById('detailModalScroll').scrollTop = 0;
       document.getElementById('detailModal').classList.remove('hidden');
     }
@@ -410,17 +661,23 @@
     }
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeDetailModal();
+      if (e.key === 'Escape') {
+        closeDetailModal();
+        closeSettingsModal();
+      }
     });
 
-    function formatSummarySection(title, summary, sortFn, labelFn) {
+    function formatSummarySection(title, summary, sortFn, labelFn, limit) {
+      let entries = Object.entries(summary).sort(sortFn);
       let text = `${title}\n`;
-      Object.entries(summary)
-        .sort(sortFn)
-        .forEach(([key, val]) => {
-          const label = labelFn ? labelFn(key) : key;
-          text += `${label}: ${val}時間\n`;
-        });
+      if (limit && entries.length > limit) {
+        entries = entries.slice(0, limit);
+        text += `（上位${limit}件）\n`;
+      }
+      entries.forEach(([key, val]) => {
+        const label = labelFn ? labelFn(key) : key;
+        text += `${label}: ${val}時間\n`;
+      });
       return text;
     }
 
@@ -437,11 +694,122 @@
       });
     }
 
-    /** AI応答の Markdown を HTML に変換して表示 */
+    // AI応答を正規化して HTML 表示
+    function normalizeAiMarkdown(text) {
+      text = text.trim().replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)```\s*$/m, '$1').trim();
+      text = text.replace(/[\uFF0A\u2217]/g, '*');
+      text = text.replace(/\*\*\s*([^*\n]+?)\s*\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/\*\*/g, '');
+      return text;
+    }
+
     function renderAiResult(markdownText) {
-      const normalized = markdownText.trim().replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)```\s*$/, '$1').trim();
       marked.setOptions({ breaks: true, gfm: true });
-      document.getElementById('resultContent').innerHTML = marked.parse(normalized);
+      document.getElementById('resultContent').innerHTML = marked.parse(normalizeAiMarkdown(markdownText));
+    }
+
+    function buildAiPrompt() {
+      return '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n' +
+        '・拠点や担当者間の作業量の偏り\n' +
+        '・作業種別ごとの工数バランス\n' +
+        '・月ごとの推移や偏り\n' +
+        '・気になる点や今後のアドバイス\n\n' +
+        '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n' +
+        cachedSummaryText;
+    }
+
+    function assertOpenAiCompatUrl(url, label) {
+      var u = String(url || '').trim();
+      if (!u) throw new Error(label + ' API URL を設定してください');
+      if (!/^https?:\/\//i.test(u)) {
+        throw new Error(label + ' API URL は http:// または https:// で始めてください');
+      }
+      if (/^http:\/\//i.test(u) && window.location.protocol === 'https:') {
+        throw new Error(
+          label + ' の API が HTTP ですが、このページは HTTPS で配信されています（Mixed Content）。' +
+          ' 社内 Web サーバーでは HTTP で配信するか、API を HTTPS にしてください。'
+        );
+      }
+    }
+
+    async function callOpenAiCompat(url, model, apiKey, prompt, maxTokens, label) {
+      var apiUrl = String(url || '').trim();
+      assertOpenAiCompatUrl(apiUrl, label || 'API');
+
+      var headers = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
+
+      var response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: maxTokens
+        })
+      });
+
+      if (!response.ok) {
+        var errText = await response.text();
+        throw new Error(label + ' Error: ' + response.status + ' ' + errText.slice(0, 200));
+      }
+
+      var resData = await response.json();
+      var choice = resData.choices && resData.choices[0];
+      return (choice && choice.message && choice.message.content) || '';
+    }
+
+    async function callGemini(apiKey, model, prompt, maxTokens) {
+      var modelId = resolveGeminiModel(model);
+      var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+        encodeURIComponent(modelId) + ':generateContent?key=' + encodeURIComponent(apiKey);
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: maxTokens
+          }
+        })
+      });
+
+      if (!response.ok) {
+        var err = await response.text();
+        throw new Error('Gemini Error: ' + response.status + ' ' + err.slice(0, 200));
+      }
+
+      var resData = await response.json();
+      var candidate = resData.candidates && resData.candidates[0];
+      var content = candidate && candidate.content;
+      var parts = content && content.parts;
+      return (parts && parts[0] && parts[0].text) || '';
+    }
+
+    async function fetchAiAnalysis(prompt) {
+      const s = getAiSettings();
+      const maxTokens = s.maxTokens || 800;
+
+      if (s.provider === 'gemini') {
+        if (!s.geminiApiKey) throw new Error('Gemini API Key を設定してください（設定メニュー）');
+        var geminiModel = resolveGeminiModel(s.geminiModel);
+        return callGemini(s.geminiApiKey, geminiModel, prompt, maxTokens);
+      }
+
+      if (s.provider === 'lmstudio') {
+        if (!s.lmStudioUrl) throw new Error('LM Studio API URL を設定してください');
+        return callOpenAiCompat(s.lmStudioUrl, s.lmStudioModel, s.lmStudioApiKey, prompt, maxTokens, 'LM Studio');
+      }
+
+      return callOpenAiCompat(s.gb10Url, s.gb10Model, s.gb10ApiKey, prompt, maxTokens, 'GB10');
+    }
+
+    function updateStatusText() {
+      var s = getAiSettings();
+      document.getElementById('statusText').textContent =
+        (PROVIDER_LABELS[s.provider] || s.provider) + ' がデータを分析中...';
     }
 
     /** UTF-8 / Shift_JIS (CP932) を自動判定してテキスト化 */
@@ -552,15 +920,16 @@
       document.getElementById('summaryTableBody-worktype').innerHTML = buildTableRows(workTypeEntries, 'worktype');
       document.getElementById('summaryTableBody-monthly').innerHTML = buildTableRows(monthlyEntries, 'monthly');
 
-      return formatSummarySection('【拠点・スタッフ別の集計結果】', staffSummary, sortByHoursDesc) +
-        formatSummarySection('【作業種別の集計結果】', workTypeSummary, sortByHoursDesc) +
-        formatSummarySection('【月別の集計結果】', monthlySummary, sortByMonthAsc, formatMonthLabel);
+      return formatSummarySection('【拠点・スタッフ別の集計結果】', staffSummary, sortByHoursDesc, null, AI_SUMMARY_LIMITS.staff) +
+        formatSummarySection('【作業種別の集計結果】', workTypeSummary, sortByHoursDesc, null, AI_SUMMARY_LIMITS.workType) +
+        formatSummarySection('【月別の集計結果】', monthlySummary, sortByMonthAsc, formatMonthLabel, AI_SUMMARY_LIMITS.month);
     }
 
     async function runAiAnalysis() {
       const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
       const statusArea = document.getElementById('statusArea');
       const resultArea = document.getElementById('resultArea');
+      const resultContent = document.getElementById('resultContent');
 
       if (!cachedSummaryText) {
         alert('先に集計を実行してください。');
@@ -569,35 +938,16 @@
 
       setButtonDisabled(aiAnalyzeBtn, true);
       resultArea.classList.add('hidden');
+      resultContent.innerHTML = '';
+      updateStatusText();
       statusArea.classList.remove('hidden');
 
       try {
-        const prompt = `以下のプロジェクト工数集計データを分析し、PM向けに総括を作成してください。\n・拠点や担当者間の作業量の偏り\n・作業種別ごとの工数バランス\n・月ごとの推移や偏り\n・気になる点や今後のアドバイス\nを簡潔にまとめてください。\n\n出力形式: Markdown（## 見出し、箇条書き、**太字** を使用）\n\n${cachedSummaryText}`;
-
-        const payload = {
-          model: GB10_MODEL,
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.7
-        };
-
-        const response = await fetch(GB10_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${GB10_API_KEY}`
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status}`);
-        }
-
-        const resData = await response.json();
-        renderAiResult(resData.choices[0].message.content);
+        const text = await fetchAiAnalysis(buildAiPrompt());
+        renderAiResult(text);
         resultArea.classList.remove('hidden');
       } catch (error) {
-        alert("エラーが発生しました: " + error.message + "\n※社内ネットワークからGB10への通信が許可されているか確認してください。");
+        alert('エラーが発生しました: ' + error.message);
       } finally {
         statusArea.classList.add('hidden');
         setButtonDisabled(aiAnalyzeBtn, false);
