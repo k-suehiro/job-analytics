@@ -100,10 +100,7 @@
       <div class="flex items-center justify-between gap-4">
         <h2 class="text-xl font-bold text-white flex items-center gap-2 min-w-0">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          <button type="button" id="appTitleBtn" onclick="openReleaseNotesModal(false)" title="リリースノートを表示"
-            class="truncate text-left font-bold hover:text-blue-100 underline decoration-white/30 hover:decoration-white/70 underline-offset-2 transition">
-            WDR工数ビューア
-          </button>
+          <span id="appTitleLabel" class="truncate">WDR工数ビューア</span>
           <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded shrink-0"></span>
           <span id="headerProviderLabel" class="text-sm font-normal text-blue-100 shrink-0 hidden sm:inline">(GB10)</span>
         </h2>
@@ -373,6 +370,14 @@
               class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
               月別
             </button>
+            <button type="button" data-dept-tab="staffclient" onclick="switchDeptSummaryTab('staffclient')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              作業者別・クライアント
+            </button>
+            <button type="button" data-dept-tab="staffworktype" onclick="switchDeptSummaryTab('staffworktype')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              作業者別・作業種別
+            </button>
           </div>
           <div id="deptPanel-utilization" class="dept-summary-panel">
             <div class="summary-chart-wrap"><canvas id="deptChart-utilization"></canvas></div>
@@ -452,6 +457,20 @@
               <tbody id="deptTableBody-monthly" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
             </div>
+          </div>
+          <div id="deptPanel-staffclient" class="dept-summary-panel hidden">
+            <div class="px-4 py-3 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-staffclient" placeholder="作業者名・クライアント名で絞り込み…" oninput="onDeptSearchInput('staffclient', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div id="deptStaffClientCards" class="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 bg-slate-50/40"></div>
+          </div>
+          <div id="deptPanel-staffworktype" class="dept-summary-panel hidden">
+            <div class="px-4 py-3 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-staffworktype" placeholder="作業者名・作業種別で絞り込み…" oninput="onDeptSearchInput('staffworktype', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div id="deptStaffWorkTypeCards" class="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 bg-slate-50/40"></div>
           </div>
         </div>
       </div>
@@ -574,25 +593,6 @@
     </div>
   </div>
 
-  <!-- リリースノートモーダル -->
-  <div id="releaseNotesModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/50" onclick="closeReleaseNotesModal()"></div>
-    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl shrink-0">
-        <h3 id="releaseNotesModalTitle" class="text-base font-bold text-slate-800">リリースノート</h3>
-        <button type="button" onclick="closeReleaseNotesModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <div id="releaseNotesModalBody" class="p-5 overflow-y-auto flex-1 min-h-0 space-y-5"></div>
-      <div class="px-5 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl shrink-0">
-        <button type="button" onclick="closeReleaseNotesModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-          閉じる
-        </button>
-      </div>
-    </div>
-  </div>
-
   <script>
     function decodeBase64Utf8(base64) {
       const binary = atob(base64 || '');
@@ -601,49 +601,8 @@
     }
 
     const GAS_INIT = JSON.parse(decodeBase64Utf8('<?= gasInitBase64 ?>') || '{}');
-    const APP_VERSION = '2.2.11';
+    const APP_VERSION = '2.2.12';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
-    const RELEASE_NOTES_SEEN_KEY = 'wdrViewer_releaseNotesSeen';
-    const RELEASE_NOTES = {
-      '2.2.9': [
-        'バージョン更新時の初回アクセスでリリースノートを自動表示',
-        'タイトル（WDR工数ビューア）をクリックしていつでもリリースノートを表示'
-      ],
-      '2.2.8': [
-        'AI分析結果を3つの分析ボタン直下に表示（集計一覧の上）'
-      ],
-      '2.2.7': [
-        '部門別・月別グラフに平均稼働率の折れ線を重ね表示（左軸: 合計時間、右軸: 稼働率%）'
-      ],
-      '2.2.6': [
-        'ヘッダー列名の別名対応（事業所=所属、作業内容=業務内容、製番=製造番号、クライアント=得意先 等）',
-        '得意先・製造番号形式を部門・グループ別として読み込み可能に'
-      ],
-      '2.2.5': [
-        'ヘッダー行の厳密検証を追加（誤った列マッピングを防止）',
-        '部門別もヘッダー列名から列位置を自動判定'
-      ],
-      '2.2.4': [
-        'AI分析を3パターンに分割（横並びボタン）',
-        'チェック時の自動実行は業務サマリー（製番別）またはチーム総括（部門別）'
-      ],
-      '2.2.3': [
-        '製番別モードで作業内容が役務単価になる不具合を修正'
-      ],
-      '2.2.2': [
-        'クライアント別・製番別グラフの担当者表示を改善'
-      ],
-      '2.2.1': [
-        '製番別モードの月別グラフを期間内の全月表示に変更',
-        '月別ラベルを 26/07 形式に統一'
-      ],
-      '2.2.0': [
-        'アプリ名を「WDR工数ビューア」に変更',
-        'ヘッダーに「テキストデータを読み込む」ボタンを追加'
-      ]
-    };
-
-    let releaseNotesMarkSeenOnClose = false;
 
     let projectColMap = null;
     let deptColMap = null;
@@ -652,8 +611,8 @@
     let deptMeta = {};
     let deptPeriodFilter = { start: '', end: '' };
     let includeTpTdNonBillable = false;
-    let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
-    let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
+    let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
+    let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [], staffclient: [], staffworktype: [] };
     let deptAnalysisMonthKeys = [];
     let deptSearchTimers = {};
     let cachedSummaryText = '';
@@ -662,6 +621,8 @@
     let aiSettingsReady = false;
     let summaryCharts = { staff: null, worktype: null, monthly: null };
     let deptSummaryCharts = { utilization: null, client: null, seiban: null, monthly: null };
+    let deptStaffClientCharts = [];
+    let deptStaffWorkTypeCharts = [];
     const SUMMARY_CHART_LIMIT = 12;
     const STAFF_CHART_MAX_INDIVIDUAL = 15;
     const CHART_COLORS = [
@@ -861,7 +822,7 @@
       if (!model) return '';
       var m = String(model).trim();
       if (m.indexOf('models/') === 0) m = m.slice(7);
-      m = m.replace(/^\/+|\/+$/g, '');
+      m = m.replace(new RegExp('^/+|/+$', 'g'), '');
       var colonIdx = m.indexOf(':');
       if (colonIdx > 0) m = m.slice(0, colonIdx);
       if (DEPRECATED_GEMINI_MODELS[m]) m = DEPRECATED_GEMINI_MODELS[m];
@@ -871,7 +832,7 @@
     function resolveGeminiModel(model) {
       var normalized = normalizeGeminiModel(model || DEFAULT_AI_SETTINGS.geminiModel);
       if (!normalized) normalized = DEFAULT_AI_SETTINGS.geminiModel;
-      if (!/^[a-z0-9][a-z0-9._-]*$/i.test(normalized)) {
+      if (!(new RegExp('^[a-z0-9][a-z0-9._-]*$', 'i')).test(normalized)) {
         throw new Error('Gemini モデル名の形式が不正です。例: gemini-2.5-flash-lite（models/ は付けない）');
       }
       return normalized;
@@ -879,97 +840,12 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.title = APP_DISPLAY_NAME;
-      var titleBtn = document.getElementById('appTitleBtn');
-      if (titleBtn) titleBtn.textContent = APP_DISPLAY_NAME;
+      var titleLabel = document.getElementById('appTitleLabel');
+      if (titleLabel) titleLabel.textContent = APP_DISPLAY_NAME;
       document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
       initAiSettings();
       initDropZone();
-      initReleaseNotes();
     });
-
-    function compareVersionsDesc(a, b) {
-      const pa = a.split('.').map(Number);
-      const pb = b.split('.').map(Number);
-      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-        const diff = (pb[i] || 0) - (pa[i] || 0);
-        if (diff !== 0) return diff;
-      }
-      return 0;
-    }
-
-    function getReleaseNotesSeen() {
-      try {
-        return JSON.parse(localStorage.getItem(RELEASE_NOTES_SEEN_KEY) || '{}');
-      } catch (_) {
-        return {};
-      }
-    }
-
-    function markReleaseNotesSeen(version) {
-      const seen = getReleaseNotesSeen();
-      seen[version] = true;
-      try {
-        localStorage.setItem(RELEASE_NOTES_SEEN_KEY, JSON.stringify(seen));
-      } catch (_) {}
-    }
-
-    function shouldAutoShowReleaseNotes() {
-      const items = RELEASE_NOTES[APP_VERSION];
-      if (!items || !items.length) return false;
-      return !getReleaseNotesSeen()[APP_VERSION];
-    }
-
-    function renderReleaseNotesModalContent() {
-      const body = document.getElementById('releaseNotesModalBody');
-      const title = document.getElementById('releaseNotesModalTitle');
-      if (!body || !title) return;
-
-      title.textContent = 'リリースノート（v' + APP_VERSION + '）';
-
-      const versions = Object.keys(RELEASE_NOTES).sort(compareVersionsDesc);
-      body.innerHTML = versions.map(function(version) {
-        const items = RELEASE_NOTES[version];
-        const isCurrent = version === APP_VERSION;
-        const headingClass = isCurrent
-          ? 'text-sm font-bold text-indigo-700'
-          : 'text-sm font-semibold text-slate-600';
-        const boxClass = isCurrent
-          ? 'rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3'
-          : 'rounded-lg border border-slate-100 bg-slate-50/50 px-4 py-3';
-        const list = items.map(function(item) {
-          return '<li class="text-sm text-slate-700 leading-relaxed">' + escapeHtml(item) + '</li>';
-        }).join('');
-        return '<section class="' + boxClass + '">' +
-          '<h4 class="' + headingClass + ' mb-2">v' + escapeHtml(version) + (isCurrent ? ' <span class="text-xs font-medium text-indigo-500">（現在のバージョン）</span>' : '') + '</h4>' +
-          '<ul class="list-disc list-inside space-y-1">' + list + '</ul>' +
-          '</section>';
-      }).join('');
-    }
-
-    function openReleaseNotesModal(markSeenOnClose) {
-      renderReleaseNotesModalContent();
-      releaseNotesMarkSeenOnClose = !!markSeenOnClose;
-      document.getElementById('releaseNotesModal').classList.remove('hidden');
-    }
-
-    function closeReleaseNotesModal() {
-      document.getElementById('releaseNotesModal').classList.add('hidden');
-      if (releaseNotesMarkSeenOnClose) {
-        markReleaseNotesSeen(APP_VERSION);
-        releaseNotesMarkSeenOnClose = false;
-      }
-    }
-
-    function initReleaseNotes() {
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && !document.getElementById('releaseNotesModal').classList.contains('hidden')) {
-          closeReleaseNotesModal();
-        }
-      });
-      if (shouldAutoShowReleaseNotes()) {
-        openReleaseNotesModal(true);
-      }
-    }
 
     function normalizeAiSettings(saved) {
       var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved || {});
@@ -1072,9 +948,9 @@
     }
 
     function normalizeOpenAiCompatUrl(url) {
-      var u = String(url || '').trim().replace(/\/+$/, '');
+      var u = String(url || '').trim().replace(new RegExp('/+$'), '');
       if (!u) return u;
-      if (/\/chat\/completions$/i.test(u)) return u;
+      if ((new RegExp('/chat/completions$', 'i')).test(u)) return u;
       return u + '/chat/completions';
     }
 
@@ -1082,7 +958,7 @@
       try {
         var host = new URL(String(url).trim()).hostname.toLowerCase();
         if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') return true;
-        var m = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+        var m = host.match(new RegExp('^(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)$'));
         if (!m) return false;
         var a = +m[1], b = +m[2];
         if (a === 10) return true;
@@ -1100,7 +976,7 @@
     }
 
     function isMixedContentApiUrl(url) {
-      return /^http:\/\//i.test(String(url || '').trim()) && window.location.protocol === 'https:';
+      return (new RegExp('^http://', 'i')).test(String(url || '').trim()) && window.location.protocol === 'https:';
     }
 
     function callGasProxy(url, model, apiKey, prompt, maxTokens) {
@@ -1202,7 +1078,7 @@
     function loadSettingsToForm() {
       const s = getAiSettings();
       document.getElementById('settingProvider').value = s.provider;
-      document.getElementById('settingGb10Url').value = String(s.gb10Url).replace(/\/chat\/completions\/?$/i, '');
+      document.getElementById('settingGb10Url').value = String(s.gb10Url).replace(new RegExp('/chat/completions/?$', 'i'), '');
       document.getElementById('settingGb10Model').value = s.gb10Model;
       document.getElementById('settingGb10ApiKey').value = s.gb10ApiKey;
       document.getElementById('settingGeminiApiKey').value = s.geminiApiKey;
@@ -1323,12 +1199,12 @@
       deptAnalysisMonthKeys = [];
       includeTpTdNonBillable = false;
       cachedSummaryText = '';
-      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
-      deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
+      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
+      deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [], staffclient: [], staffworktype: [] };
 
       var tpTdCheck = document.getElementById('includeTpTdNonBillable');
       if (tpTdCheck) tpTdCheck.checked = false;
-      ['utilization', 'client', 'seiban', 'monthly'].forEach(function(id) {
+      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
         var el = document.getElementById('deptSearch-' + id);
         if (el) el.value = '';
       });
@@ -1357,24 +1233,26 @@
 
     function escapeHtml(str) {
       return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(new RegExp('&', 'g'), '&amp;')
+        .replace(new RegExp('<', 'g'), '&lt;')
+        .replace(new RegExp('>', 'g'), '&gt;')
+        .replace(new RegExp('"', 'g'), '&quot;');
     }
 
     /** 日付文字列から YYYY-MM を抽出（2024-12-19 形式など） */
     function parseMonthKey(dateStr) {
       if (!dateStr) return null;
-      dateStr = String(dateStr).trim().replace(/[／]/g, '/').replace(/[－−—]/g, '-');
+      dateStr = String(dateStr).trim()
+        .replace(new RegExp('[／]', 'g'), '/')
+        .replace(new RegExp('[－−—]', 'g'), '-');
 
-      let m = dateStr.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      let m = dateStr.match(new RegExp('(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})'));
       if (m) return `${m[1]}-${m[2].padStart(2, '0')}`;
 
-      m = dateStr.match(/^(\d{4})[-\/](\d{1,2})$/);
+      m = dateStr.match(new RegExp('^(\\d{4})[-/](\\d{1,2})$'));
       if (m) return `${m[1]}-${m[2].padStart(2, '0')}`;
 
-      m = dateStr.match(/^(\d{4})(\d{2})(\d{2})$/);
+      m = dateStr.match(new RegExp('^(\\d{4})(\\d{2})(\\d{2})$'));
       if (m) return `${m[1]}-${m[2]}`;
 
       return null;
@@ -1428,7 +1306,7 @@
     }
 
     function extractStaffNameFromKey(staffKey) {
-      const m = String(staffKey || '').match(/^\[\d+\]\s*(.+)$/);
+      const m = String(staffKey || '').match(new RegExp('^\\[\\d+\\]\\s*(.+)$'));
       return m ? m[1] : staffKey;
     }
 
@@ -1643,7 +1521,7 @@
     }
 
     function normalizeHeaderCell(cell) {
-      return String(cell || '').trim().replace(/^#/, '');
+      return String(cell || '').trim().replace(new RegExp('^#'), '');
     }
 
     function findProjectColumnIndex(cols, names) {
@@ -1741,8 +1619,10 @@
 
     function parseDateKey(dateStr) {
       if (!dateStr) return null;
-      const m = String(dateStr).trim().replace(/[／]/g, '/').replace(/[－−—]/g, '-')
-        .match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      const m = String(dateStr).trim()
+        .replace(new RegExp('[／]', 'g'), '/')
+        .replace(new RegExp('[－−—]', 'g'), '-')
+        .match(new RegExp('(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})'));
       if (!m) return null;
       return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
     }
@@ -1769,7 +1649,7 @@
 
       for (const raw of lines) {
         const line = raw.trim();
-        if (/^#期間\s*[:：]/i.test(line)) {
+        if ((new RegExp('^#期間\\s*[:：]', 'i')).test(line)) {
           throw new Error(
             '部門・グループ別のメタ情報はありますが、対応するヘッダー行が見つかりません。' +
             '列名の別名（得意先=クライアント、製造番号=製番、業務内容=作業内容 等）を含むヘッダー行が必要です。'
@@ -1790,18 +1670,18 @@
         const line = raw.trim();
         if (!line.startsWith('#')) continue;
         const body = line.slice(1).trim();
-        const periodMatch = body.match(/^期間\s*[:：]\s*(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})\s*[-〜~]\s*(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})/i);
+        const periodMatch = body.match(new RegExp('^期間\\s*[:：]\\s*(\\d{4}[-/]\\d{1,2}[-/]\\d{1,2})\\s*[-〜~]\\s*(\\d{4}[-/]\\d{1,2}[-/]\\d{1,2})', 'i'));
         if (periodMatch) {
           meta.periodStart = parseDateKey(periodMatch[1]) || '';
           meta.periodEnd = parseDateKey(periodMatch[2]) || '';
           continue;
         }
-        const seibanOptMatch = body.match(/^製番\s*[:：]\s*(.+)$/i);
+        const seibanOptMatch = body.match(new RegExp('^製番\\s*[:：]\\s*(.+)$', 'i'));
         if (seibanOptMatch) {
           meta.includeNoSeiban = seibanOptMatch[1].trim();
           continue;
         }
-        if (!/^期間/.test(body) && !/^製番\s*[:：]/.test(body) && body) {
+        if (!(new RegExp('^期間')).test(body) && !(new RegExp('^製番\\s*[:：]')).test(body) && body) {
           meta.scopeLabel = body;
         }
       }
@@ -2020,9 +1900,173 @@
         </tr>`;
     }
 
+    function renderDeptStaffClientCards(entries) {
+      const wrap = document.getElementById('deptStaffClientCards');
+      if (!wrap) return;
+
+      deptStaffClientCharts.forEach(function(chart) {
+        if (chart) chart.destroy();
+      });
+      deptStaffClientCharts = [];
+
+      if (entries.length === 0) {
+        wrap.innerHTML = '<div class="col-span-full px-4 py-8 text-sm text-slate-400 text-center bg-white rounded-lg border border-slate-200">該当データがありません</div>';
+        return;
+      }
+
+      wrap.innerHTML = entries.map(function(entry, idx) {
+        const clients = Object.entries(entry.clientHours || {}).sort(function(a, b) { return b[1] - a[1]; });
+        const legendHtml = clients.map(function(pair, i) {
+          const color = CHART_COLORS[i % CHART_COLORS.length];
+          const rate = entry.totalHours > 0 ? (pair[1] / entry.totalHours) * 100 : 0;
+          return `
+            <li class="flex items-center justify-between gap-3 text-sm">
+              <span class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+                <span class="truncate text-slate-700">${escapeHtml(pair[0])}</span>
+              </span>
+              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}</span>
+            </li>`;
+        }).join('');
+        return `
+          <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h4 class="text-sm font-semibold text-slate-800">${escapeHtml(entry.label)}</h4>
+                <p class="text-xs text-slate-500 mt-1">合計 ${formatHours(entry.totalHours)}h / クライアント ${entry.clientCount}件</p>
+              </div>
+            </div>
+            <div class="h-56"><canvas id="deptStaffClientChart-${idx}"></canvas></div>
+            <ul class="mt-4 space-y-2">${legendHtml}</ul>
+          </section>`;
+      }).join('');
+
+      entries.forEach(function(entry, idx) {
+        const canvas = document.getElementById(`deptStaffClientChart-${idx}`);
+        if (!canvas || typeof Chart === 'undefined') return;
+        const clients = Object.entries(entry.clientHours || {}).sort(function(a, b) { return b[1] - a[1]; });
+        const chart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: clients.map(function(pair) { return pair[0]; }),
+            datasets: [{
+              data: clients.map(function(pair) { return pair[1]; }),
+              backgroundColor: clients.map(function(_, i) { return CHART_COLORS[i % CHART_COLORS.length]; }),
+              borderColor: '#ffffff',
+              borderWidth: 2,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    const hours = ctx.parsed || 0;
+                    const pct = entry.totalHours > 0 ? (hours / entry.totalHours) * 100 : 0;
+                    return `${ctx.label}: ${formatHours(hours)}h (${formatRateDisplay(pct)})`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        deptStaffClientCharts.push(chart);
+      });
+    }
+
+    function renderDeptStaffWorkTypeCards(entries) {
+      const wrap = document.getElementById('deptStaffWorkTypeCards');
+      if (!wrap) return;
+
+      deptStaffWorkTypeCharts.forEach(function(chart) {
+        if (chart) chart.destroy();
+      });
+      deptStaffWorkTypeCharts = [];
+
+      if (entries.length === 0) {
+        wrap.innerHTML = '<div class="col-span-full px-4 py-8 text-sm text-slate-400 text-center bg-white rounded-lg border border-slate-200">該当データがありません</div>';
+        return;
+      }
+
+      wrap.innerHTML = entries.map(function(entry, idx) {
+        const workTypes = Object.entries(entry.workTypeHours || {}).sort(function(a, b) { return b[1] - a[1]; });
+        const legendHtml = workTypes.map(function(pair, i) {
+          const color = CHART_COLORS[i % CHART_COLORS.length];
+          const rate = entry.totalHours > 0 ? (pair[1] / entry.totalHours) * 100 : 0;
+          return `
+            <li class="flex items-center justify-between gap-3 text-sm">
+              <span class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+                <span class="truncate text-slate-700">${escapeHtml(pair[0])}</span>
+              </span>
+              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}</span>
+            </li>`;
+        }).join('');
+        return `
+          <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h4 class="text-sm font-semibold text-slate-800">${escapeHtml(entry.label)}</h4>
+                <p class="text-xs text-slate-500 mt-1">合計 ${formatHours(entry.totalHours)}h / 作業種別 ${entry.workTypeCount}件</p>
+              </div>
+            </div>
+            <div class="h-56"><canvas id="deptStaffWorkTypeChart-${idx}"></canvas></div>
+            <ul class="mt-4 space-y-2">${legendHtml}</ul>
+          </section>`;
+      }).join('');
+
+      entries.forEach(function(entry, idx) {
+        const canvas = document.getElementById(`deptStaffWorkTypeChart-${idx}`);
+        if (!canvas || typeof Chart === 'undefined') return;
+        const workTypes = Object.entries(entry.workTypeHours || {}).sort(function(a, b) { return b[1] - a[1]; });
+        const chart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: workTypes.map(function(pair) { return pair[0]; }),
+            datasets: [{
+              data: workTypes.map(function(pair) { return pair[1]; }),
+              backgroundColor: workTypes.map(function(_, i) { return CHART_COLORS[i % CHART_COLORS.length]; }),
+              borderColor: '#ffffff',
+              borderWidth: 2,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    const hours = ctx.parsed || 0;
+                    const pct = entry.totalHours > 0 ? (hours / entry.totalHours) * 100 : 0;
+                    return `${ctx.label}: ${formatHours(hours)}h (${formatRateDisplay(pct)})`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        deptStaffWorkTypeCharts.push(chart);
+      });
+    }
+
     function renderDepartmentTab(tabId) {
       const entries = filterDeptEntries(tabId, deptSummaryCache[tabId] || []);
       const body = document.getElementById('deptTableBody-' + tabId);
+      if (tabId === 'staffclient') {
+        renderDeptStaffClientCards(entries);
+        return;
+      }
+      if (tabId === 'staffworktype') {
+        renderDeptStaffWorkTypeCards(entries);
+        return;
+      }
       if (!body) return;
 
       const monthKeys = (tabId === 'utilization' || tabId === 'client') ? deptAnalysisMonthKeys : [];
@@ -2060,13 +2104,19 @@
 
       records.forEach(r => {
         if (r.staffKey) {
-          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0, byMonth: {}, staffName: r.staffName || '' };
+          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0, byMonth: {}, staffName: r.staffName || '', clientHours: {}, workTypeHours: {} };
           if (r.staffName) staffMap[r.staffKey].staffName = r.staffName;
           staffMap[r.staffKey].total += r.hours;
           if (r.isProductive) {
             staffMap[r.staffKey].standard += r.hours;
           } else if (includeTpTdNonBillable && isTpTdNonBillableRecord(r)) {
             staffMap[r.staffKey].tpTd += r.hours;
+          }
+          if (r.client) {
+            staffMap[r.staffKey].clientHours[r.client] = (staffMap[r.staffKey].clientHours[r.client] || 0) + r.hours;
+          }
+          if (r.workType) {
+            staffMap[r.staffKey].workTypeHours[r.workType] = (staffMap[r.staffKey].workTypeHours[r.workType] || 0) + r.hours;
           }
           if (r.monthKey) addStaffMonthHours(staffMap[r.staffKey], r.monthKey, r.hours, r);
         }
@@ -2127,6 +2177,36 @@
         };
       }).sort((a, b) => b.rate - a.rate || b.totalHours - a.totalHours);
 
+      const staffclient = Object.entries(staffMap).map(([key, val]) => {
+        const displayName = val.staffName || extractStaffNameFromKey(key);
+        const clientHours = val.clientHours || {};
+        const topClient = Object.entries(clientHours).sort((a, b) => b[1] - a[1])[0];
+        return {
+          key,
+          label: displayName,
+          totalHours: val.total,
+          clientHours,
+          clientCount: Object.keys(clientHours).length,
+          topClientLabel: topClient ? topClient[0] : '',
+          searchText: `${displayName} ${Object.keys(clientHours).join(' ')}`
+        };
+      }).filter(e => e.clientCount > 0).sort((a, b) => b.totalHours - a.totalHours);
+
+      const staffworktype = Object.entries(staffMap).map(([key, val]) => {
+        const displayName = val.staffName || extractStaffNameFromKey(key);
+        const workTypeHours = val.workTypeHours || {};
+        const topWorkType = Object.entries(workTypeHours).sort((a, b) => b[1] - a[1])[0];
+        return {
+          key,
+          label: displayName,
+          totalHours: val.total,
+          workTypeHours,
+          workTypeCount: Object.keys(workTypeHours).length,
+          topWorkTypeLabel: topWorkType ? topWorkType[0] : '',
+          searchText: `${displayName} ${Object.keys(workTypeHours).join(' ')}`
+        };
+      }).filter(e => e.workTypeCount > 0).sort((a, b) => b.totalHours - a.totalHours);
+
       const client = Object.entries(clientMap).map(([key, val]) => ({
         key,
         label: key,
@@ -2165,7 +2245,7 @@
           searchText: formatMonthLabel(monthKey)
         }));
 
-      return { utilization, client, seiban, monthly };
+      return { utilization, client, seiban, monthly, staffclient, staffworktype };
     }
 
     function renderDepartmentSummary() {
@@ -2173,10 +2253,18 @@
       const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
       deptAnalysisMonthKeys = getVisibleAnalysisMonthKeys(filtered);
       deptSummaryCache = computeDepartmentSummaries(filtered);
-      ['utilization', 'client', 'seiban', 'monthly'].forEach(renderDepartmentTab);
+      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(renderDepartmentTab);
     }
 
     function destroyDeptSummaryCharts() {
+      deptStaffClientCharts.forEach(function(chart) {
+        if (chart) chart.destroy();
+      });
+      deptStaffClientCharts = [];
+      deptStaffWorkTypeCharts.forEach(function(chart) {
+        if (chart) chart.destroy();
+      });
+      deptStaffWorkTypeCharts = [];
       Object.keys(deptSummaryCharts).forEach(function(key) {
         if (deptSummaryCharts[key]) {
           deptSummaryCharts[key].destroy();
@@ -2449,6 +2537,7 @@
               backgroundColor: '#93c5fd',
               borderRadius: 4,
               maxBarThickness: 36,
+              order: 2,
               yAxisID: 'y'
             },
             {
@@ -2463,6 +2552,7 @@
               pointBackgroundColor: UTIL_STANDARD_COLOR,
               tension: 0.25,
               fill: false,
+              order: 1,
               yAxisID: 'y1'
             }
           ]
@@ -2986,10 +3076,10 @@
 
     // AI応答を正規化して HTML 表示
     function normalizeAiMarkdown(text) {
-      text = text.trim().replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)```\s*$/m, '$1').trim();
-      text = text.replace(/[\uFF0A\u2217]/g, '*');
-      text = text.replace(/\*\*\s*([^*\n]+?)\s*\*\*/g, '<strong>$1</strong>');
-      text = text.replace(/\*\*/g, '');
+      text = text.trim().replace(new RegExp('^```(?:markdown|md)?\\s*\\n([\\s\\S]*?)```\\s*$', 'm'), '$1').trim();
+      text = text.replace(new RegExp('[\\uFF0A\\u2217]', 'g'), '*');
+      text = text.replace(new RegExp('\\*\\*\\s*([^*\\n]+?)\\s*\\*\\*', 'g'), '<strong>$1</strong>');
+      text = text.replace(new RegExp('\\*\\*', 'g'), '');
       return text;
     }
 
@@ -3006,7 +3096,7 @@
     function assertOpenAiCompatUrl(url, label) {
       var u = String(url || '').trim();
       if (!u) throw new Error(label + ' API URL を設定してください');
-      if (!/^https?:\/\//i.test(u)) {
+      if (!(new RegExp('^https?://', 'i')).test(u)) {
         throw new Error(label + ' API URL は http:// または https:// で始めてください');
       }
     }
@@ -3126,10 +3216,10 @@
       const utf8Text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
       const sjisText = new TextDecoder('shift_jis').decode(bytes);
 
-      const japaneseRegex = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g;
+      const japaneseRegex = new RegExp('[\\u3000-\\u303f\\u3040-\\u309f\\u30a0-\\u30ff\\u4e00-\\u9faf]', 'g');
       const utf8JpCount = (utf8Text.match(japaneseRegex) || []).length;
       const sjisJpCount = (sjisText.match(japaneseRegex) || []).length;
-      const utf8BadCount = (utf8Text.match(/\uFFFD/g) || []).length;
+      const utf8BadCount = (utf8Text.match(new RegExp('\\uFFFD', 'g')) || []).length;
 
       if (utf8BadCount > 0 || sjisJpCount > utf8JpCount) {
         return sjisText;
@@ -3192,8 +3282,8 @@
       includeTpTdNonBillable = false;
       const tpTdCheck = document.getElementById('includeTpTdNonBillable');
       if (tpTdCheck) tpTdCheck.checked = false;
-      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
-      ['utilization', 'client', 'seiban', 'monthly'].forEach(function(id) {
+      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
+      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
         const el = document.getElementById('deptSearch-' + id);
         if (el) el.value = '';
       });
