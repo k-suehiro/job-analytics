@@ -243,6 +243,27 @@
         </div>
       </div>
 
+      <div id="statusArea" class="hidden mt-4 flex flex-col items-center justify-center py-6">
+        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p id="statusText" class="text-slate-600 font-medium animate-pulse">AIがデータを分析中...</p>
+      </div>
+
+      <div id="resultArea" class="hidden mt-4">
+        <h3 class="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          AIによる総括・インサイト
+          <span id="resultPatternLabel" class="normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700"></span>
+        </h3>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-lg shadow-inner">
+          <div class="ai-result-scroll">
+            <div id="resultContent" class="ai-result text-slate-800 leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+
       <div id="summaryArea" class="hidden mt-8">
         <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
           <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -429,27 +450,6 @@
           </div>
         </div>
       </div>
-
-      <div id="statusArea" class="hidden mt-6 flex flex-col items-center justify-center py-6 border-t border-slate-100">
-        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p id="statusText" class="text-slate-600 font-medium animate-pulse">AIがデータを分析中...</p>
-      </div>
-
-      <div id="resultArea" class="hidden mt-6">
-        <h3 class="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          AIによる総括・インサイト
-          <span id="resultPatternLabel" class="normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700"></span>
-        </h3>
-        <div class="bg-indigo-50 border border-indigo-100 rounded-lg shadow-inner">
-          <div class="ai-result-scroll">
-            <div id="resultContent" class="ai-result text-slate-800 leading-relaxed"></div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -571,10 +571,11 @@
 
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.4';
+    const APP_VERSION = '2.2.8';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let projectColMap = null;
+    let deptColMap = null;
     let allRecords = [];
     let allDeptRecords = [];
     let deptMeta = {};
@@ -1158,6 +1159,8 @@
 
       allRecords = [];
       allDeptRecords = [];
+      projectColMap = null;
+      deptColMap = null;
       deptMeta = {};
       deptPeriodFilter = { start: '', end: '' };
       deptAnalysisMonthKeys = [];
@@ -1387,6 +1390,101 @@
       }).join('');
     }
 
+    function splitTsvLine(line) {
+      return line.split('\t').map(function(c) { return c.trim(); });
+    }
+
+    const WDR_COLUMN_ALIASES = {
+      workDate: ['日付'],
+      location: ['事業所', '所属'],
+      department: ['部署'],
+      staff: ['スタッフ', '作業者名', '社員名'],
+      workType: ['作業種別'],
+      workContent: ['作業内容', '業務内容'],
+      hours: ['作業時間'],
+      employeeId: ['社員番号'],
+      seiban: ['製番', '製造番号'],
+      client: ['クライアント', '得意先'],
+      productName: ['品名'],
+      sales: ['売上'],
+      tokutei: ['特定'],
+      unitPrice: ['役務単価']
+    };
+
+    function buildWdrColumnMap(cols) {
+      const map = {};
+      Object.keys(WDR_COLUMN_ALIASES).forEach(function(key) {
+        map[key] = findProjectColumnIndex(cols, WDR_COLUMN_ALIASES[key]);
+      });
+      return map;
+    }
+
+    function hasMappedColumn(map, key) {
+      return map[key] >= 0;
+    }
+
+    function getColValue(cols, index) {
+      if (index < 0 || index >= cols.length) return '';
+      return cols[index];
+    }
+
+    function isDepartmentStyleHeader(cols) {
+      const m = buildWdrColumnMap(cols);
+      if (!hasMappedColumn(m, 'workDate') || !hasMappedColumn(m, 'hours') || !hasMappedColumn(m, 'workContent')) return false;
+      if (!hasMappedColumn(m, 'staff')) return false;
+      return hasMappedColumn(m, 'sales') ||
+        hasMappedColumn(m, 'tokutei') ||
+        hasMappedColumn(m, 'seiban') ||
+        hasMappedColumn(m, 'client') ||
+        hasMappedColumn(m, 'employeeId');
+    }
+
+    function isProjectStyleHeader(cols) {
+      const m = buildWdrColumnMap(cols);
+      if (!hasMappedColumn(m, 'workDate') || !hasMappedColumn(m, 'hours') || !hasMappedColumn(m, 'workContent')) return false;
+      if (!hasMappedColumn(m, 'staff') || !hasMappedColumn(m, 'location') || !hasMappedColumn(m, 'workType')) return false;
+      return !isDepartmentStyleHeader(cols);
+    }
+
+    function classifyDataHeader(cols) {
+      if (isDepartmentStyleHeader(cols)) return 'department';
+      if (isProjectStyleHeader(cols)) return 'project';
+      return null;
+    }
+
+    function isDataHeaderRow(cols) {
+      return classifyDataHeader(cols) !== null;
+    }
+
+    function isTabularLine(line) {
+      return line.includes('\t');
+    }
+
+    function scanDataHeaders(lines) {
+      var projectHeader = null;
+      var departmentHeader = null;
+      lines.forEach(function(raw) {
+        const line = raw.trim();
+        if (!line || !isTabularLine(line)) return;
+        const cols = splitTsvLine(line);
+        if (cols.length < 8) return;
+        const mode = classifyDataHeader(cols);
+        if (mode === 'department' && !departmentHeader) departmentHeader = cols;
+        if (mode === 'project' && !projectHeader) projectHeader = cols;
+      });
+      return { projectHeader: projectHeader, departmentHeader: departmentHeader };
+    }
+
+    function assertColumnMap(map, requiredKeys, label) {
+      const missing = requiredKeys.filter(function(key) { return map[key] < 0; });
+      if (missing.length > 0) {
+        const labels = missing.map(function(key) {
+          return (WDR_COLUMN_ALIASES[key] || [key]).join('/');
+        });
+        throw new Error(label + 'のヘッダーに必要な列が見つかりません: ' + labels.join(', '));
+      }
+    }
+
     function normalizeHeaderCell(cell) {
       return String(cell || '').trim().replace(/^#/, '');
     }
@@ -1399,60 +1497,66 @@
     }
 
     function isProjectHeaderRow(cols) {
-      const normalized = cols.map(normalizeHeaderCell);
-      return normalized.includes('作業内容') && normalized.includes('作業時間');
+      return classifyDataHeader(cols) === 'project';
+    }
+
+    function isDepartmentHeaderRow(cols) {
+      return classifyDataHeader(cols) === 'department';
     }
 
     function parseProjectColumnMap(lines) {
-      for (const raw of lines) {
-        const line = raw.trim();
-        if (!line || (line.startsWith('#') && !line.includes('\t'))) continue;
-        const cols = line.split('\t').map(c => c.trim());
-        if (!isProjectHeaderRow(cols)) continue;
-        const workContent = findProjectColumnIndex(cols, ['作業内容']);
-        const hours = findProjectColumnIndex(cols, ['作業時間']);
-        if (workContent < 0 || hours < 0) continue;
-        return {
-          workDate: Math.max(findProjectColumnIndex(cols, ['日付']), 0),
-          location: Math.max(findProjectColumnIndex(cols, ['事業所']), 1),
-          department: Math.max(findProjectColumnIndex(cols, ['部署']), 2),
-          staff: Math.max(findProjectColumnIndex(cols, ['スタッフ']), 3),
-          workType: Math.max(findProjectColumnIndex(cols, ['作業種別']), 4),
-          workContent,
-          hours
-        };
+      const found = scanDataHeaders(lines);
+      if (!found.projectHeader) {
+        throw new Error(
+          '製番別のヘッダー行が見つかりません。' +
+          '「日付, 事業所/所属, スタッフ/社員名, 作業種別, 作業内容/業務内容, 作業時間」形式の行が必要です。'
+        );
       }
-      // WDR 既定（役務単価列あり: 作業内容=6, 作業時間=7）
-      return { workDate: 0, location: 1, department: 2, staff: 3, workType: 4, workContent: 6, hours: 7 };
+      const map = buildWdrColumnMap(found.projectHeader);
+      assertColumnMap(map, ['workDate', 'location', 'staff', 'workType', 'workContent', 'hours'], '製番別');
+      return map;
+    }
+
+    function parseDepartmentColumnMap(lines) {
+      const found = scanDataHeaders(lines);
+      if (!found.departmentHeader) {
+        throw new Error(
+          '部門・グループ別のヘッダー行が見つかりません。' +
+          '「日付, スタッフ/社員名/作業者名, 作業内容/業務内容, 作業時間」に加え、' +
+          '売上・特定・製番/製造番号・クライアント/得意先・社員番号のいずれかを含む行が必要です。'
+        );
+      }
+      const map = buildWdrColumnMap(found.departmentHeader);
+      assertColumnMap(map, ['workDate', 'staff', 'workContent', 'hours'], '部門・グループ別');
+      return map;
     }
 
     function extractDepartment(cols) {
-      const m = projectColMap || { department: 2 };
-      if (!cols[m.department]) return '';
+      const m = projectColMap;
+      if (!m || m.department < 0 || !cols[m.department]) return '';
       const value = String(cols[m.department]).trim();
       if (!value || value === '-----' || parseMonthKey(value)) return '';
       return value;
     }
 
-    /** 製番別TSVの作業内容列を取得（役務単価列を誤って読まない） */
     function extractWorkContent(cols) {
-      const m = projectColMap || { workContent: 6 };
-      const idx = cols.length > m.workContent ? m.workContent : 5;
-      if (!cols[idx]) return '';
-      const value = String(cols[idx]).trim();
+      const m = projectColMap;
+      if (!m || m.workContent < 0 || !cols[m.workContent]) return '';
+      const value = String(cols[m.workContent]).trim();
       if (!value || parseMonthKey(value)) return '';
       return value;
     }
 
     function parseRecord(cols) {
-      const m = projectColMap || { workDate: 0, location: 1, department: 2, staff: 3, workType: 4, workContent: 6, hours: 7 };
+      const m = projectColMap;
+      if (!m) return null;
+      if (cols.length <= m.hours) return null;
       const location = cols[m.location];
       const department = extractDepartment(cols);
-      const staff = cols[m.staff];
-      const workType = cols[m.workType];
+      const staff = getColValue(cols, m.staff);
+      const workType = getColValue(cols, m.workType);
       const workContent = extractWorkContent(cols);
-      const hoursIdx = cols.length > m.hours ? m.hours : 7;
-      const hours = parseFloat(cols[hoursIdx]);
+      const hours = parseFloat(cols[m.hours]);
       if (isNaN(hours)) return null;
 
       let workDate = '';
@@ -1498,20 +1602,29 @@
 
     function detectDataMode(text) {
       const lines = text.split(/\r?\n/);
+      const found = scanDataHeaders(lines);
+
+      if (found.departmentHeader && found.projectHeader) {
+        throw new Error('製番別と部門別のヘッダーが混在しています。ファイルを確認してください。');
+      }
+      if (found.departmentHeader) return 'department';
+      if (found.projectHeader) return 'project';
+
       for (const raw of lines) {
         const line = raw.trim();
-        if (!line) continue;
-        if (/^#期間\s*[:：]/i.test(line)) return 'department';
-        if (/^#製番\s*[\t\u3000]/.test(line) && !/^#製番\s*[:：]/.test(line)) return 'project';
+        if (/^#期間\s*[:：]/i.test(line)) {
+          throw new Error(
+            '部門・グループ別のメタ情報はありますが、対応するヘッダー行が見つかりません。' +
+            '列名の別名（得意先=クライアント、製造番号=製番、業務内容=作業内容 等）を含むヘッダー行が必要です。'
+          );
+        }
       }
-      for (const raw of lines) {
-        const line = raw.trim();
-        if (!line || line.startsWith('#')) continue;
-        const cols = line.split('\t').map(c => c.trim());
-        if (cols.length >= 15 && cols.includes('売上') && cols.includes('特定')) return 'department';
-        if (cols.length >= 8) return 'project';
-      }
-      throw new Error('データ形式を判定できませんでした。製番別または部門・グループ別のWDRテキストファイルか確認してください。');
+
+      throw new Error(
+        '対応するヘッダー行が見つかりませんでした。' +
+        'WDR の製番別または部門・グループ別テキストで、' +
+        '日付・作業時間・作業内容（または業務内容）・担当者名（スタッフ/社員名/作業者名）を含むヘッダー行が必要です。'
+      );
     }
 
     function parseDepartmentMeta(lines) {
@@ -1554,16 +1667,18 @@
     }
 
     function parseDepartmentRecord(cols) {
-      if (cols.length < 15) return null;
-      const hours = parseFloat(cols[14]);
+      const m = deptColMap;
+      if (!m || cols.length <= m.hours) return null;
+      const hours = parseFloat(cols[m.hours]);
       if (isNaN(hours)) return null;
 
-      const workDate = cols[0];
-      const employeeId = cols[1];
-      const staffName = cols[2];
-      const seiban = normalizeSeiban(cols[3]);
-      const hasSales = isYesFlag(cols[4]);
-      const hasTokutei = isYesFlag(cols[5]);
+      const workDate = getColValue(cols, m.workDate);
+      const employeeId = getColValue(cols, m.employeeId);
+      const staffName = getColValue(cols, m.staff);
+      const seibanRaw = getColValue(cols, m.seiban);
+      const seiban = normalizeSeiban(seibanRaw);
+      const hasSales = m.sales >= 0 && isYesFlag(cols[m.sales]);
+      const hasTokutei = m.tokutei >= 0 && isYesFlag(cols[m.tokutei]);
       const isProductive = hasSales || hasTokutei;
       const staffKey = employeeId ? `[${employeeId}] ${staffName}` : staffName;
 
@@ -1573,23 +1688,17 @@
         staffName,
         staffKey,
         seiban,
-        seibanRaw: cols[3],
+        seibanRaw: seibanRaw,
         hasSales,
         hasTokutei,
         isProductive,
         salesFlag: hasSales ? '有' : '無',
         tokuteiFlag: hasTokutei ? '有' : '無',
-        client: cols[6] || '',
-        productName: cols[7] || '',
-        parentCategory: cols[8] || '',
-        childCategory: cols[9] || '',
-        workCode: cols[10] || '',
-        fmCode: cols[11] || '',
-        workType: cols[12] || '',
-        workContent: cols[13] || '',
+        client: getColValue(cols, m.client),
+        productName: getColValue(cols, m.productName),
+        workType: getColValue(cols, m.workType),
+        workContent: getColValue(cols, m.workContent),
         hours,
-        isClaim: cols[15] === '1' || cols[15] === '有',
-        uniqueId: cols[16] || '',
         monthKey: parseMonthKey(workDate)
       };
     }
@@ -1778,7 +1887,7 @@
       if (tabId === 'utilization') {
         renderDeptUtilizationChart(entries);
       } else if (tabId === 'monthly') {
-        renderDeptChart('monthly', entries.map(e => [e.label, e.hours, e.key]), false, 'h');
+        renderDeptMonthlyChart(entries);
       } else if (tabId === 'seiban') {
         renderDeptStaffBreakdownChart('seiban', entries);
       } else if (tabId === 'client') {
@@ -1893,6 +2002,8 @@
           key: monthKey,
           label: formatMonthLabel(monthKey),
           hours: val.hours,
+          productiveHours: val.productive,
+          totalHours: val.total,
           avgRate: val.total > 0 ? (val.productive / val.total) * 100 : 0,
           searchText: formatMonthLabel(monthKey)
         }));
@@ -2139,6 +2250,122 @@
           scales: {
             x: { stacked: true, beginAtZero: true, grid: { display: false }, ticks: { callback: v => v + 'h' } },
             y: { stacked: true, beginAtZero: true, grid: { display: true }, ticks: { autoSkip: false, font: { size: 11 }, padding: 6, crossAlign: 'far' } }
+          }
+        }
+      });
+    }
+
+    function renderDeptMonthlyChart(entries) {
+      const tabId = 'monthly';
+      if (deptSummaryCharts[tabId]) {
+        deptSummaryCharts[tabId].destroy();
+        deptSummaryCharts[tabId] = null;
+      }
+
+      const canvas = document.getElementById('deptChart-' + tabId);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const wrap = canvas.parentElement;
+      const chartEntries = entries;
+      if (chartEntries.length === 0) {
+        wrap.classList.add('hidden');
+        return;
+      }
+      wrap.classList.remove('hidden');
+
+      const scrollX = chartEntries.length > 12;
+      wrap.classList.toggle('summary-chart-wrap--scroll-x', scrollX);
+      wrap.style.height = '280px';
+      wrap.style.minWidth = scrollX ? (chartEntries.length * 42 + 48) + 'px' : '';
+
+      const fullLabels = chartEntries.map(e => String(e.label));
+
+      deptSummaryCharts[tabId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: fullLabels.map(l => truncateChartLabel(l, 10)),
+          datasets: [
+            {
+              type: 'bar',
+              label: '合計時間 (h)',
+              data: chartEntries.map(e => e.hours),
+              backgroundColor: '#93c5fd',
+              borderRadius: 4,
+              maxBarThickness: 36,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: '平均稼働率 (%)',
+              data: chartEntries.map(e => e.avgRate),
+              borderColor: UTIL_STANDARD_COLOR,
+              backgroundColor: 'rgba(99, 102, 241, 0.12)',
+              borderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: UTIL_STANDARD_COLOR,
+              tension: 0.25,
+              fill: false,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          layout: { padding: { top: 8, right: 4 } },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0] && items[0].dataIndex;
+                  return fullLabels[idx] || items[0].label;
+                },
+                label: function(ctx) {
+                  const entry = chartEntries[ctx.dataIndex];
+                  if (ctx.datasetIndex === 0) {
+                    return `合計時間: ${formatHours(entry.hours)} h`;
+                  }
+                  return `平均稼働率: ${formatRateDisplay(entry.avgRate)}`;
+                },
+                afterBody: function(items) {
+                  const entry = chartEntries[items[0].dataIndex];
+                  if (entry.productiveHours == null) return [];
+                  return [
+                    `稼働: ${formatHours(entry.productiveHours)} h / 総時間: ${formatHours(entry.totalHours || entry.hours)} h`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { maxRotation: 45, minRotation: 0, autoSkip: chartEntries.length > 12 }
+            },
+            y: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              title: { display: true, text: '時間 (h)', font: { size: 11 } },
+              grid: { display: true },
+              ticks: { callback: function(v) { return v + 'h'; } }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: '稼働率 (%)', font: { size: 11 }, color: UTIL_STANDARD_COLOR },
+              grid: { drawOnChartArea: false },
+              ticks: { callback: function(v) { return v + '%'; }, color: UTIL_STANDARD_COLOR }
+            }
           }
         }
       });
@@ -2800,6 +3027,8 @@
       closeDetailModal();
       allRecords = [];
       allDeptRecords = [];
+      projectColMap = null;
+      deptColMap = null;
       deptMeta = {};
       deptPeriodFilter = { start: '', end: '' };
       deptAnalysisMonthKeys = [];
@@ -2840,30 +3069,33 @@
         line = line.trim();
         if (line === '' || line.startsWith('#')) return;
         const cols = line.split('\t').map(col => col.trim());
-        if (isProjectHeaderRow(cols)) return;
-        if (cols.length >= 8) {
-          const record = parseRecord(cols);
-          if (!record) return;
+        if (isDataHeaderRow(cols)) return;
+        if (!projectColMap || cols.length <= projectColMap.hours) return;
+        const record = parseRecord(cols);
+        if (!record) return;
 
-          allRecords.push(record);
-          const { staffKey, workType, monthKey, hours, staff, department } = record;
+        allRecords.push(record);
+        const { staffKey, workType, monthKey, hours, staff, department } = record;
 
-          if (staff && staffKey) {
-            staffSummary[staffKey] = (staffSummary[staffKey] || 0) + hours;
-            if (department) staffDeptMap[staffKey] = department;
-            if (workType) {
-              if (!staffWorkTypeSummary[staffKey]) staffWorkTypeSummary[staffKey] = {};
-              staffWorkTypeSummary[staffKey][workType] = (staffWorkTypeSummary[staffKey][workType] || 0) + hours;
-            }
-          }
+        if (staff && staffKey) {
+          staffSummary[staffKey] = (staffSummary[staffKey] || 0) + hours;
+          if (department) staffDeptMap[staffKey] = department;
           if (workType) {
-            workTypeSummary[workType] = (workTypeSummary[workType] || 0) + hours;
-          }
-          if (monthKey) {
-            monthlySummary[monthKey] = (monthlySummary[monthKey] || 0) + hours;
+            if (!staffWorkTypeSummary[staffKey]) staffWorkTypeSummary[staffKey] = {};
+            staffWorkTypeSummary[staffKey][workType] = (staffWorkTypeSummary[staffKey][workType] || 0) + hours;
           }
         }
+        if (workType) {
+          workTypeSummary[workType] = (workTypeSummary[workType] || 0) + hours;
+        }
+        if (monthKey) {
+          monthlySummary[monthKey] = (monthlySummary[monthKey] || 0) + hours;
+        }
       });
+
+      if (allRecords.length === 0) {
+        throw new Error('製番別データの明細行を読み取れませんでした。ヘッダー行の次にデータ行があるか確認してください。');
+      }
 
       const staffEntries = Object.entries(staffSummary)
         .sort(sortByHoursDesc)
@@ -2896,17 +3128,17 @@
     async function buildDepartmentAggregation(text) {
       const lines = text.split(/\r?\n/);
       deptMeta = parseDepartmentMeta(lines);
+      deptColMap = parseDepartmentColumnMap(lines);
       allDeptRecords = [];
 
       lines.forEach(line => {
         line = line.trim();
         if (line === '' || line.startsWith('#')) return;
         const cols = line.split('\t').map(col => col.trim());
-        if (cols[0] === '日付' || cols.includes('社員番号')) return;
-        if (cols.length >= 15) {
-          const record = parseDepartmentRecord(cols);
-          if (record) allDeptRecords.push(record);
-        }
+        if (isDataHeaderRow(cols)) return;
+        if (!deptColMap || cols.length <= deptColMap.hours) return;
+        const record = parseDepartmentRecord(cols);
+        if (record) allDeptRecords.push(record);
       });
 
       if (allDeptRecords.length === 0) {
