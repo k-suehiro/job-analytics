@@ -220,7 +220,7 @@
           <input id="aiAnalyzeCheck" type="checkbox" class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
           <span class="text-sm text-slate-700">
             AI分析も実行する
-            <span class="block text-xs text-slate-500 font-normal mt-0.5">部門名を参照し、各スタッフの担当業務として実際の作業内容を分析します</span>
+            <span class="block text-xs text-slate-500 font-normal mt-0.5">集計後にデフォルト分析を自動実行（製番別: 業務サマリー / 部門別: チーム総括）</span>
           </span>
         </label>
         <button id="aggregateBtn" onclick="runAggregate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center gap-2">
@@ -228,10 +228,20 @@
         </button>
       </div>
 
-      <button id="aiAnalyzeBtn" onclick="runAiAnalysis()" class="hidden w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-        <span id="aiAnalyzeBtnLabel">AI分析を実行する</span>
-      </button>
+      <div id="aiAnalyzeArea" class="hidden">
+        <p class="text-xs text-slate-500 mb-2 text-center">分析の切り口を選んでください</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" id="aiAnalyzeBtn0" onclick="runAiAnalysisForButton(0)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+            <span class="ai-btn-label">業務サマリー</span>
+          </button>
+          <button type="button" id="aiAnalyzeBtn1" onclick="runAiAnalysisForButton(1)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+            <span class="ai-btn-label">偏り・集中度</span>
+          </button>
+          <button type="button" id="aiAnalyzeBtn2" onclick="runAiAnalysisForButton(2)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+            <span class="ai-btn-label">気になる点</span>
+          </button>
+        </div>
+      </div>
 
       <div id="summaryArea" class="hidden mt-8">
         <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
@@ -429,9 +439,10 @@
       </div>
 
       <div id="resultArea" class="hidden mt-6">
-        <h3 class="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           AIによる総括・インサイト
+          <span id="resultPatternLabel" class="normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700"></span>
         </h3>
         <div class="bg-indigo-50 border border-indigo-100 rounded-lg shadow-inner">
           <div class="ai-result-scroll">
@@ -560,7 +571,7 @@
 
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.3';
+    const APP_VERSION = '2.2.4';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let projectColMap = null;
@@ -590,6 +601,96 @@
     const UTIL_TP_TD_COLOR = '#f59e0b';
 
     const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null, deptStaff: 20, deptClient: 15, deptSeiban: 15, deptMonth: null };
+    const AI_OUTPUT_FORMAT = '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n';
+    const AI_ANALYSIS_PATTERNS = {
+      project: [
+        {
+          id: 'summary',
+          label: '業務サマリー',
+          intro: '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n\n' +
+            '【分析方針】\n' +
+            '・各スタッフの部門名を必ず参照し、その部門の担当業務として作業種別を解釈してください（例: 人事総務部のスタッフに開発作業がなければ、開発業務の偏りとして指摘しない）。\n' +
+            '・「一般的な業務配分」や他部門・他担当者との比較で、特定の作業種別が多い・少ないといった偏り指摘は不要です。\n' +
+            '・各スタッフが実際に記録している作業内容（作業種別の内訳）を詳しく見て、「その人・その部門だからこそ担っている業務」という観点で分析してください。\n' +
+            '・部門と作業内容が明らかに不整合な場合のみ、データ入力ミスの可能性に触れてください。\n\n' +
+            '【記載内容】\n' +
+            '・部門・担当者ごとの実際の業務内容の特徴\n' +
+            '・作業種別・月ごとの傾向（部門の文脈で説明）\n' +
+            '・気になる点や今後のアドバイス\n\n'
+        },
+        {
+          id: 'concentration',
+          label: '偏り・集中度',
+          intro: '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で、工数の偏りと集中度に焦点を当てて分析してください。\n\n' +
+            '【分析方針】\n' +
+            '・クライアント別・製番別・月別の工数配分を見て、特定案件やクライアントへの集中が強いかを評価してください。\n' +
+            '・スタッフ間で工数や担当案件の偏りがあるかを確認してください。\n' +
+            '・月別トレンドで繁忙期・閑散期や増減の傾向があれば言及してください。\n' +
+            '・各スタッフの部門名を参照し、その部門の業務範囲の文脈で偏りを解釈してください。\n\n' +
+            '【記載内容】\n' +
+            '・集中度が高いクライアント・製番・時期\n' +
+            '・スタッフ・案件の偏り\n' +
+            '・分散や負荷平準化に関する所見\n\n'
+        },
+        {
+          id: 'concerns',
+          label: '気になる点',
+          intro: '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で、気になる点とフォロー候補に焦点を当てて分析してください。\n\n' +
+            '【分析方針】\n' +
+            '・部門と作業種別・作業内容が明らかに不整合なケースを優先的に指摘してください（データ入力ミスの可能性）。\n' +
+            '・特定スタッフへの負荷過多、記録の偏り、想定外の作業種別があれば触れてください。\n' +
+            '・フォロー・アクションが必要と思われる点を具体的に挙げてください。\n' +
+            '・問題がなければ「特になし」と簡潔に述べてください。\n\n' +
+            '【記載内容】\n' +
+            '・入力ミス・不整合の疑い\n' +
+            '・負荷・記録上の注意点\n' +
+            '・フォロー候補と推奨アクション\n\n'
+        }
+      ],
+      department: [
+        {
+          id: 'team',
+          label: 'チーム総括',
+          intro: '以下は部門・グループ単位の工数データ集計サマリーです（明細行は含まれません）。マネージャー向けに300〜500字程度で総括してください。\n\n' +
+            '【分析方針】\n' +
+            '・個人別の稼働率（売上「有」または特定「有」の時間 ÷ 総作業時間）の高低と偏りを評価してください。\n' +
+            '・クライアントへの集中度（特定クライアントへの工数依存）に触れてください。\n' +
+            '・製番の分散状況（案件の偏り）を確認してください。\n' +
+            '・月別の工数・稼働率トレンドがあれば言及してください。\n\n' +
+            '【記載内容】\n' +
+            '・チーム全体の稼働状況の特徴\n' +
+            '・個人・クライアント・製番の傾向\n' +
+            '・気になる点や今後のアドバイス\n\n'
+        },
+        {
+          id: 'utilization',
+          label: '個人・稼働率',
+          intro: '以下は部門・グループ単位の工数データ集計サマリーです（明細行は含まれません）。マネージャー向けに300〜500字程度で、個人別の稼働率に焦点を当てて分析してください。\n\n' +
+            '【分析方針】\n' +
+            '・個人別の稼働率（売上「有」または特定「有」の時間 ÷ 総作業時間）の高低と偏りを中心に評価してください。\n' +
+            '・稼働率が著しく高い・低いメンバーがいれば、その可能性やフォロー観点を述べてください。\n' +
+            '・チーム内でのバランスや、サポートが必要そうな人材に触れてください。\n\n' +
+            '【記載内容】\n' +
+            '・個人別稼働率の特徴と偏り\n' +
+            '・高稼働・低稼働メンバーの所見\n' +
+            '・人員配置・フォローに関するアドバイス\n\n'
+        },
+        {
+          id: 'risk',
+          label: 'リスク・依存',
+          intro: '以下は部門・グループ単位の工数データ集計サマリーです（明細行は含まれません）。マネージャー向けに300〜500字程度で、リスクと依存関係に焦点を当てて分析してください。\n\n' +
+            '【分析方針】\n' +
+            '・特定クライアントへの工数依存（集中度）が高い場合はリスクとして指摘してください。\n' +
+            '・製番・案件の偏り（少数案件への集中）を確認してください。\n' +
+            '・月別の工数・稼働率トレンドで悪化傾向があれば言及してください。\n' +
+            '・チーム全体の安定性に影響しうる点を優先してください。\n\n' +
+            '【記載内容】\n' +
+            '・クライアント依存のリスク\n' +
+            '・案件集中のリスク\n' +
+            '・トレンド上の注意点と対策の提案\n\n'
+        }
+      ]
+    };
     const GB10_MODELS = [
       'qwen36-35b-a3bfp8no-think',
       'qwen3.6-35b-a3b:fp8'
@@ -898,7 +999,6 @@
 
     function applySelectedFile(name) {
       document.querySelector('#aggregateBtn span').innerText = '「' + name + '」を集計する';
-      document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + name + '」を分析する';
       document.getElementById('dropZoneFileName').textContent = '選択中: ' + name;
       document.getElementById('dropZoneFileName').classList.remove('hidden');
       document.getElementById('dropZoneText').classList.add('hidden');
@@ -1009,7 +1109,7 @@
       document.getElementById('instructionArea').classList.remove('hidden');
       document.getElementById('fileUploadArea').classList.remove('hidden');
       document.getElementById('initialActionArea').classList.remove('hidden');
-      document.getElementById('aiAnalyzeBtn').classList.add('hidden');
+      document.getElementById('aiAnalyzeArea').classList.add('hidden');
       setLoadDataHeaderVisible(false);
     }
 
@@ -1017,9 +1117,39 @@
       document.getElementById('instructionArea').classList.add('hidden');
       document.getElementById('fileUploadArea').classList.add('hidden');
       document.getElementById('initialActionArea').classList.add('hidden');
-      document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + fileName + '」を分析する';
-      document.getElementById('aiAnalyzeBtn').classList.remove('hidden');
+      updateAiAnalyzeButtons();
+      document.getElementById('aiAnalyzeArea').classList.remove('hidden');
       setLoadDataHeaderVisible(true);
+    }
+
+    function getAiPatternsForMode() {
+      return AI_ANALYSIS_PATTERNS[dataMode === 'department' ? 'department' : 'project'];
+    }
+
+    function getDefaultAiPatternId() {
+      return dataMode === 'department' ? 'team' : 'summary';
+    }
+
+    function getAiPatternById(patternId) {
+      return getAiPatternsForMode().find(function(p) { return p.id === patternId; });
+    }
+
+    function updateAiAnalyzeButtons() {
+      var patterns = getAiPatternsForMode();
+      patterns.forEach(function(p, i) {
+        var btn = document.getElementById('aiAnalyzeBtn' + i);
+        if (!btn) return;
+        var label = btn.querySelector('.ai-btn-label');
+        if (label) label.textContent = p.label;
+        btn.dataset.pattern = p.id;
+      });
+    }
+
+    function setAiAnalyzeButtonsDisabled(disabled) {
+      [0, 1, 2].forEach(function(i) {
+        var btn = document.getElementById('aiAnalyzeBtn' + i);
+        if (btn) setButtonDisabled(btn, disabled);
+      });
     }
 
     function returnToUploadScreen() {
@@ -1500,15 +1630,16 @@
         projectContainer.classList.add('hidden');
         deptContainer.classList.remove('hidden');
         deptMetaArea.classList.remove('hidden');
-        if (aiHint) aiHint.textContent = '個人の稼働率・クライアント・製番の傾向を分析します';
+        if (aiHint) aiHint.textContent = '集計後にチーム総括を自動実行（下の3ボタンで切り口を変更可能）';
       } else {
         badge.textContent = '製番別集計';
         badge.className = 'normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700';
         projectContainer.classList.remove('hidden');
         deptContainer.classList.add('hidden');
         deptMetaArea.classList.add('hidden');
-        if (aiHint) aiHint.textContent = '部門名を参照し、各スタッフの担当業務として実際の作業内容を分析します';
+        if (aiHint) aiHint.textContent = '集計後に業務サマリーを自動実行（下の3ボタンで切り口を変更可能）';
       }
+      updateAiAnalyzeButtons();
     }
 
     function renderDepartmentMetaUI() {
@@ -2483,33 +2614,9 @@
       document.getElementById('resultContent').innerHTML = marked.parse(normalizeAiMarkdown(markdownText));
     }
 
-    function buildAiPrompt() {
-      if (dataMode === 'department') {
-        return '以下は部門・グループ単位の工数データ集計サマリーです（明細行は含まれません）。マネージャー向けに300〜500字程度で総括してください。\n\n' +
-          '【分析方針】\n' +
-          '・個人別の稼働率（売上「有」または特定「有」の時間 ÷ 総作業時間）の高低と偏りを評価してください。\n' +
-          '・クライアントへの集中度（特定クライアントへの工数依存）に触れてください。\n' +
-          '・製番の分散状況（案件の偏り）を確認してください。\n' +
-          '・月別の工数・稼働率トレンドがあれば言及してください。\n\n' +
-          '【記載内容】\n' +
-          '・チーム全体の稼働状況の特徴\n' +
-          '・個人・クライアント・製番の傾向\n' +
-          '・気になる点や今後のアドバイス\n\n' +
-          '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n' +
-          cachedSummaryText;
-      }
-      return '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n\n' +
-        '【分析方針】\n' +
-        '・各スタッフの部門名を必ず参照し、その部門の担当業務として作業種別を解釈してください（例: 人事総務部のスタッフに開発作業がなければ、開発業務の偏りとして指摘しない）。\n' +
-        '・「一般的な業務配分」や他部門・他担当者との比較で、特定の作業種別が多い・少ないといった偏り指摘は不要です。\n' +
-        '・各スタッフが実際に記録している作業内容（作業種別の内訳）を詳しく見て、「その人・その部門だからこそ担っている業務」という観点で分析してください。\n' +
-        '・部門と作業内容が明らかに不整合な場合のみ、データ入力ミスの可能性に触れてください。\n\n' +
-        '【記載内容】\n' +
-        '・部門・担当者ごとの実際の業務内容の特徴\n' +
-        '・作業種別・月ごとの傾向（部門の文脈で説明）\n' +
-        '・気になる点や今後のアドバイス\n\n' +
-        '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n' +
-        cachedSummaryText;
+    function buildAiPrompt(patternId) {
+      var pattern = getAiPatternById(patternId) || getAiPatternById(getDefaultAiPatternId());
+      return pattern.intro + AI_OUTPUT_FORMAT + cachedSummaryText;
     }
 
     function assertOpenAiCompatUrl(url, label) {
@@ -2617,10 +2724,11 @@
       return callOpenAiCompat(s.gb10Url, s.gb10Model, s.gb10ApiKey, prompt, maxTokens, 'GB10');
     }
 
-    function updateStatusText() {
+    function updateStatusText(patternLabel) {
       var s = getAiSettings();
-      document.getElementById('statusText').textContent =
-        (PROVIDER_LABELS[s.provider] || s.provider) + ' がデータを分析中...';
+      var text = (PROVIDER_LABELS[s.provider] || s.provider) + ' がデータを分析中';
+      if (patternLabel) text += '（' + patternLabel + '）';
+      document.getElementById('statusText').textContent = text + '...';
     }
 
     /** UTF-8 / Shift_JIS (CP932) を自動判定してテキスト化 */
@@ -2674,8 +2782,8 @@
           document.getElementById('instructionArea').classList.add('hidden');
           document.getElementById('fileUploadArea').classList.add('hidden');
           document.getElementById('initialActionArea').classList.add('hidden');
-          document.getElementById('aiAnalyzeBtn').classList.add('hidden');
-          await runAiAnalysis();
+          document.getElementById('aiAnalyzeArea').classList.add('hidden');
+          await runAiAnalysis(getDefaultAiPatternId());
         } else {
           showPostAggregateUI(fileName);
         }
@@ -2816,32 +2924,45 @@
       return buildDepartmentSummaryText();
     }
 
-    async function runAiAnalysis() {
-      const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
-      const statusArea = document.getElementById('statusArea');
+    function runAiAnalysisForButton(index) {
+      var patterns = getAiPatternsForMode();
+      var pattern = patterns[index];
+      if (pattern) runAiAnalysis(pattern.id);
+    }
+
+    async function runAiAnalysis(patternId) {
       const resultArea = document.getElementById('resultArea');
       const resultContent = document.getElementById('resultContent');
+      const resultPatternLabel = document.getElementById('resultPatternLabel');
 
       if (!cachedSummaryText) {
         alert('先に集計を実行してください。');
         return;
       }
 
-      setButtonDisabled(aiAnalyzeBtn, true);
+      var pattern = getAiPatternById(patternId) || getAiPatternById(getDefaultAiPatternId());
+
+      setAiAnalyzeButtonsDisabled(true);
       resultArea.classList.add('hidden');
       resultContent.innerHTML = '';
-      updateStatusText();
-      statusArea.classList.remove('hidden');
+      if (resultPatternLabel) resultPatternLabel.textContent = pattern.label;
+      updateStatusText(pattern.label);
+      document.getElementById('statusArea').classList.remove('hidden');
 
       try {
-        const text = await fetchAiAnalysis(buildAiPrompt());
+        const text = await fetchAiAnalysis(buildAiPrompt(pattern.id));
         renderAiResult(text);
         resultArea.classList.remove('hidden');
       } catch (error) {
         alert('エラーが発生しました: ' + error.message);
       } finally {
-        statusArea.classList.add('hidden');
-        setButtonDisabled(aiAnalyzeBtn, false);
+        document.getElementById('statusArea').classList.add('hidden');
+        setAiAnalyzeButtonsDisabled(false);
+        if (cachedSummaryText) {
+          updateAiAnalyzeButtons();
+          document.getElementById('aiAnalyzeArea').classList.remove('hidden');
+          setLoadDataHeaderVisible(true);
+        }
       }
     }
   </script>
