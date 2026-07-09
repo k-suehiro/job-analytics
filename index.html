@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     /* カスタムスクロールバー */
     ::-webkit-scrollbar { width: 8px; }
@@ -52,6 +53,8 @@
     .detail-table-head th.sort-active { color: #2563eb; }
     .ai-result > *:first-child { margin-top: 0; }
     .ai-result > *:last-child { margin-bottom: 0; }
+    .drop-zone-active { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
+    .summary-chart-wrap { position: relative; min-height: 220px; height: 220px; padding: 1rem 1rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 antialiased">
@@ -73,13 +76,62 @@
     </div>
 
     <div class="p-6">
+      <div id="instructionArea" class="mb-6 rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50/80 p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 mt-0.5 rounded-lg bg-blue-100 p-2 text-blue-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 class="text-sm font-semibold text-slate-800 mb-2">テキストデータの取得方法</h3>
+            <p class="text-sm text-slate-600 mb-3 leading-relaxed">
+              このツールで分析する工数データは、<span class="font-medium text-slate-700">WDR（Web Daily Report）</span>からダウンロードしたテキストファイルを使用します。
+            </p>
+            <p class="text-sm font-medium text-slate-700 mb-2">マネージャーの場合（管理ページから取得）</p>
+            <ol class="space-y-2 text-sm text-slate-600 mb-4">
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
+                <span class="pt-0.5">左メニューの<strong class="font-medium text-slate-700">「検索」</strong>を開き、製番を入力して検索します。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">2</span>
+                <span class="pt-0.5">検索結果に表示された<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
+                <span class="pt-0.5">モーダル内の<strong class="font-medium text-slate-700">「ダウンロード」</strong>をクリックし、テキストデータを保存します。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">4</span>
+                <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
+              </li>
+            </ol>
+            <p class="text-sm font-medium text-slate-700 mb-2">マネージャー以外の場合</p>
+            <ol class="space-y-2 text-sm text-slate-600">
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
+                <span class="pt-0.5">WDRの登録済み日報の中にある<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">2</span>
+                <span class="pt-0.5">モーダル内の<strong class="font-medium text-slate-700">「ダウンロード」</strong>をクリックし、テキストデータを保存します。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
+                <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       <div id="fileUploadArea" class="mb-6">
         <label class="block text-sm font-medium text-slate-700 mb-2">工数データ (TXT/CSV)</label>
         <div class="flex items-center justify-center w-full">
-            <label for="fileInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition duration-200">
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <label id="dropZone" for="fileInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition duration-200">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6 pointer-events-none">
                     <svg class="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <p class="mb-2 text-sm text-slate-500"><span class="font-semibold">クリックしてファイルを選択</span> またはドラッグ＆ドロップ</p>
+                    <p id="dropZoneText" class="mb-2 text-sm text-slate-500"><span class="font-semibold">クリックしてファイルを選択</span> またはドラッグ＆ドロップ</p>
+                    <p id="dropZoneFileName" class="hidden text-sm font-medium text-blue-600"></p>
                 </div>
                 <input id="fileInput" type="file" class="hidden" accept=".txt,.tsv,.csv" />
             </label>
@@ -87,9 +139,12 @@
       </div>
 
       <div id="initialActionArea" class="space-y-3">
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input id="aiAnalyzeCheck" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-          <span class="text-sm text-slate-700">AI分析も実行する</span>
+        <label class="flex items-start gap-2 cursor-pointer select-none">
+          <input id="aiAnalyzeCheck" type="checkbox" class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+          <span class="text-sm text-slate-700">
+            AI分析も実行する
+            <span class="block text-xs text-slate-500 font-normal mt-0.5">部門名を参照し、各スタッフの担当業務として実際の作業内容を分析します</span>
+          </span>
         </label>
         <button id="aggregateBtn" onclick="runAggregate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center gap-2">
           <span>集計する</span>
@@ -121,7 +176,9 @@
               月別
             </button>
           </div>
-          <div id="summaryPanel-staff" class="summary-panel max-h-64 overflow-y-auto overflow-x-hidden">
+          <div id="summaryPanel-staff" class="summary-panel">
+            <div class="summary-chart-wrap"><canvas id="summaryChart-staff"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr>
@@ -131,8 +188,11 @@
               </thead>
               <tbody id="summaryTableBody-staff" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
+            </div>
           </div>
-          <div id="summaryPanel-worktype" class="summary-panel hidden max-h-64 overflow-y-auto overflow-x-hidden">
+          <div id="summaryPanel-worktype" class="summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="summaryChart-worktype"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr>
@@ -142,8 +202,11 @@
               </thead>
               <tbody id="summaryTableBody-worktype" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
+            </div>
           </div>
-          <div id="summaryPanel-monthly" class="summary-panel hidden max-h-64 overflow-y-auto overflow-x-hidden">
+          <div id="summaryPanel-monthly" class="summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="summaryChart-monthly"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr>
@@ -153,6 +216,7 @@
               </thead>
               <tbody id="summaryTableBody-monthly" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>
@@ -182,7 +246,7 @@
   <!-- 集計行クリック時の詳細モーダル -->
   <div id="detailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50" onclick="closeDetailModal()"></div>
-    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[85vh] flex flex-col">
+    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
         <h3 id="detailModalTitle" class="text-base font-bold text-slate-800"></h3>
         <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
@@ -237,11 +301,14 @@
           <div>
             <label class="block text-xs text-slate-500 mb-1">API URL</label>
             <input id="settingGb10Url" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-            <p class="text-xs text-slate-400 mt-1">社内閉域網の OpenAI 互換 API（例: http://172.16.x.x:3000/...）</p>
+            <p class="text-xs text-slate-400 mt-1">例: http://172.16.4.223:3000/api/v1（/chat/completions は自動付与）</p>
           </div>
           <div>
-            <label class="block text-xs text-slate-500 mb-1">モデル名</label>
-            <input id="settingGb10Model" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <label class="block text-xs text-slate-500 mb-1">モデル</label>
+            <select id="settingGb10Model" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="qwen36-35b-a3bfp8no-think">qwen36-35b-a3bfp8no-think</option>
+              <option value="qwen3.6-35b-a3b:fp8">qwen3.6-35b-a3b:fp8</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs text-slate-500 mb-1">API Key</label>
@@ -274,7 +341,7 @@
           </div>
           <div>
             <label class="block text-xs text-slate-500 mb-1">API Key（任意）</label>
-            <input id="settingLmStudioApiKey" type="password" placeholder="lm-studio" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <input id="settingLmStudioApiKey" type="password" placeholder="" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
           </div>
         </fieldset>
 
@@ -298,31 +365,45 @@
     let allRecords = [];
     let cachedSummaryText = '';
     let detailModalState = { records: [], columns: [], sortKey: 'workDate', sortDir: 'asc' };
+    let summaryCharts = { staff: null, worktype: null, monthly: null };
+    const SUMMARY_CHART_LIMIT = 12;
+    const CHART_COLORS = [
+      '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899',
+      '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6',
+      '#06b6d4', '#0ea5e9'
+    ];
 
     const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null };
+    const GB10_MODELS = [
+      'qwen36-35b-a3bfp8no-think',
+      'qwen3.6-35b-a3b:fp8'
+    ];
     const DEFAULT_AI_SETTINGS = {
       provider: 'gb10',
-      gb10Url: 'http://172.16.4.223:3000/api/v1/chat/completions',
-      gb10Model: 'qwen3.6-35b-a3b:fp8',
+      gb10Url: 'http://172.16.4.223:3000/api/v1',
+      gb10Model: 'qwen36-35b-a3bfp8no-think',
       gb10ApiKey: 'sk-b7e20c47c19747cb83fa41e44e0a77fa',
       geminiApiKey: '',
       geminiModel: 'gemini-2.5-flash-lite',
       lmStudioUrl: 'http://localhost:1234/v1/chat/completions',
       lmStudioModel: '',
-      lmStudioApiKey: 'lm-studio',
+      lmStudioApiKey: '',
       maxTokens: 800
     };
 
     const DETAIL_COLUMNS = {
       staff: [
         { key: 'workDate', label: '作業日' },
+        { key: 'department', label: '部門' },
         { key: 'workType', label: '作業種別' },
+        { key: 'workContent', label: '作業内容' },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ],
       worktype: [
         { key: 'workDate', label: '作業日' },
         { key: 'location', label: '拠点' },
         { key: 'staff', label: 'スタッフ' },
+        { key: 'workContent', label: '作業内容' },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ],
       monthly: [
@@ -330,6 +411,7 @@
         { key: 'location', label: '拠点' },
         { key: 'staff', label: 'スタッフ' },
         { key: 'workType', label: '作業種別' },
+        { key: 'workContent', label: '作業内容' },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ]
     };
@@ -341,6 +423,12 @@
       'gemini-1.5-pro': 'gemini-2.5-pro',
       'gemini-1.5-flash': 'gemini-2.5-flash'
     };
+
+    function normalizeGb10Model(model) {
+      var m = String(model || '').trim();
+      if (GB10_MODELS.indexOf(m) >= 0) return m;
+      return DEFAULT_AI_SETTINGS.gb10Model;
+    }
 
     function normalizeGeminiModel(model) {
       if (!model) return '';
@@ -366,13 +454,109 @@
       document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
       loadSettingsToForm();
       updateHeaderProviderLabel();
+      initDropZone();
     });
+
+    function normalizeOpenAiCompatUrl(url) {
+      var u = String(url || '').trim().replace(/\/+$/, '');
+      if (!u) return u;
+      if (/\/chat\/completions$/i.test(u)) return u;
+      return u + '/chat/completions';
+    }
+
+    function isPrivateNetworkUrl(url) {
+      try {
+        var host = new URL(String(url).trim()).hostname.toLowerCase();
+        if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') return true;
+        var m = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+        if (!m) return false;
+        var a = +m[1], b = +m[2];
+        if (a === 10) return true;
+        if (a === 172 && b >= 16 && b <= 31) return true;
+        if (a === 192 && b === 168) return true;
+        return false;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function isGasEnvironment() {
+      return typeof google !== 'undefined' && google.script && google.script.run;
+    }
+
+    function isMixedContentApiUrl(url) {
+      return /^http:\/\//i.test(String(url || '').trim()) && window.location.protocol === 'https:';
+    }
+
+    function callGasProxy(url, model, apiKey, prompt, maxTokens) {
+      return new Promise(function(resolve, reject) {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(function(err) {
+            reject(new Error(typeof err === 'string' ? err : (err.message || String(err))));
+          })
+          .proxyOpenAiChat(url, model, apiKey, prompt, maxTokens);
+      });
+    }
+
+    function initDropZone() {
+      var dropZone = document.getElementById('dropZone');
+      var fileInput = document.getElementById('fileInput');
+
+      ['dragenter', 'dragover'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drop-zone-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drop-zone-active');
+        });
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (!files || !files.length) return;
+        var file = files[0];
+        var ext = file.name.split('.').pop().toLowerCase();
+        if (!['txt', 'tsv', 'csv'].includes(ext)) {
+          alert('TXT / TSV / CSV 形式のファイルを選択してください。');
+          return;
+        }
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(file);
+          fileInput.files = dt.files;
+        } catch (_) {
+          alert('このブラウザではドラッグ＆ドロップに対応していません。クリックしてファイルを選択してください。');
+          return;
+        }
+        applySelectedFile(file.name);
+      });
+    }
+
+    function applySelectedFile(name) {
+      document.querySelector('#aggregateBtn span').innerText = '「' + name + '」を集計する';
+      document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + name + '」を分析する';
+      document.getElementById('dropZoneFileName').textContent = '選択中: ' + name;
+      document.getElementById('dropZoneFileName').classList.remove('hidden');
+      document.getElementById('dropZoneText').classList.add('hidden');
+      showInitialUploadUI();
+    }
 
     function getAiSettings() {
       try {
         var saved = JSON.parse(localStorage.getItem('aiSettings') || '{}');
         var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved);
         merged.geminiModel = normalizeGeminiModel(merged.geminiModel);
+        merged.gb10Url = normalizeOpenAiCompatUrl(merged.gb10Url);
+        merged.gb10Model = normalizeGb10Model(merged.gb10Model);
+        if (merged.lmStudioApiKey === 'lm-studio') merged.lmStudioApiKey = '';
         return merged;
       } catch (_) {
         return Object.assign({}, DEFAULT_AI_SETTINGS);
@@ -404,7 +588,7 @@
     function loadSettingsToForm() {
       const s = getAiSettings();
       document.getElementById('settingProvider').value = s.provider;
-      document.getElementById('settingGb10Url').value = s.gb10Url;
+      document.getElementById('settingGb10Url').value = String(s.gb10Url).replace(/\/chat\/completions\/?$/i, '');
       document.getElementById('settingGb10Model').value = s.gb10Model;
       document.getElementById('settingGb10ApiKey').value = s.gb10ApiKey;
       document.getElementById('settingGeminiApiKey').value = s.geminiApiKey;
@@ -419,8 +603,8 @@
     function saveSettings() {
       const settings = {
         provider: document.getElementById('settingProvider').value,
-        gb10Url: document.getElementById('settingGb10Url').value.trim(),
-        gb10Model: document.getElementById('settingGb10Model').value.trim(),
+        gb10Url: normalizeOpenAiCompatUrl(document.getElementById('settingGb10Url').value.trim()),
+        gb10Model: normalizeGb10Model(document.getElementById('settingGb10Model').value),
         gb10ApiKey: document.getElementById('settingGb10ApiKey').value.trim(),
         geminiApiKey: document.getElementById('settingGeminiApiKey').value.trim(),
         geminiModel: normalizeGeminiModel(document.getElementById('settingGeminiModel').value),
@@ -437,20 +621,19 @@
     // ファイル選択時にボタンラベルを更新
     document.getElementById('fileInput').addEventListener('change', function(e) {
       if (e.target.files.length > 0) {
-        const name = e.target.files[0].name;
-        document.querySelector('#aggregateBtn span').innerText = '「' + name + '」を集計する';
-        document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + name + '」を分析する';
-        showInitialUploadUI();
+        applySelectedFile(e.target.files[0].name);
       }
     });
 
     function showInitialUploadUI() {
+      document.getElementById('instructionArea').classList.remove('hidden');
       document.getElementById('fileUploadArea').classList.remove('hidden');
       document.getElementById('initialActionArea').classList.remove('hidden');
       document.getElementById('aiAnalyzeBtn').classList.add('hidden');
     }
 
     function showPostAggregateUI(fileName) {
+      document.getElementById('instructionArea').classList.add('hidden');
       document.getElementById('fileUploadArea').classList.add('hidden');
       document.getElementById('initialActionArea').classList.add('hidden');
       document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + fileName + '」を分析する';
@@ -534,10 +717,27 @@
       }).join('');
     }
 
+    function extractDepartment(cols) {
+      if (!cols[2]) return '';
+      const value = String(cols[2]).trim();
+      if (!value || parseMonthKey(value)) return '';
+      return value;
+    }
+
+    /** TSV 6列目（index 5）から作業内容を取得（日付形式の列は除外） */
+    function extractWorkContent(cols) {
+      if (!cols[5]) return '';
+      const value = String(cols[5]).trim();
+      if (!value || parseMonthKey(value)) return '';
+      return value;
+    }
+
     function parseRecord(cols) {
       const location = cols[1];
+      const department = extractDepartment(cols);
       const staff = cols[3];
       const workType = cols[4];
+      const workContent = extractWorkContent(cols);
       const hours = parseFloat(cols[7]);
       if (isNaN(hours)) return null;
 
@@ -545,7 +745,7 @@
       const monthKey = extractMonthKey(cols);
       const staffKey = staff ? `${location} - ${staff}` : '';
 
-      return { workDate, location, staff, workType, hours, monthKey, staffKey };
+      return { workDate, location, department, staff, workType, workContent, hours, monthKey, staffKey };
     }
 
     function extractWorkDate(cols) {
@@ -559,14 +759,13 @@
       return '';
     }
 
-    function buildDetailColgroup(colCount) {
-      if (colCount === 3) {
-        return '<col style="width:7rem"><col><col style="width:6rem">';
-      }
-      if (colCount === 4) {
-        return '<col style="width:7rem"><col><col><col style="width:6rem">';
-      }
-      return '<col style="width:7rem"><col><col><col><col style="width:6rem">';
+    function buildDetailColgroup(columns) {
+      return columns.map(col => {
+        if (col.key === 'workDate') return '<col style="width:7rem">';
+        if (col.key === 'hours') return '<col style="width:6rem">';
+        if (col.key === 'workContent') return '<col>';
+        return '<col style="width:8rem">';
+      }).join('');
     }
 
     function sortDetailRecords(records, sortKey, sortDir) {
@@ -647,7 +846,7 @@
       document.getElementById('detailModalSummary').textContent =
         `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
 
-      const colgroup = buildDetailColgroup(columns.length);
+      const colgroup = buildDetailColgroup(columns);
       document.getElementById('detailModalColgroupHead').innerHTML = colgroup;
       document.getElementById('detailModalColgroupBody').innerHTML = colgroup;
 
@@ -666,6 +865,35 @@
         closeSettingsModal();
       }
     });
+
+    function formatStaffWorkTypeSection(staffWorkTypes, staffDeptMap, limit) {
+      let entries = Object.entries(staffWorkTypes).map(([staffKey, workTypes]) => {
+        const total = Object.values(workTypes).reduce((sum, h) => sum + h, 0);
+        return [staffKey, workTypes, total];
+      }).sort((a, b) => b[2] - a[2]);
+
+      let text = '【スタッフ別の部門・作業内訳】\n';
+      if (limit && entries.length > limit) {
+        entries = entries.slice(0, limit);
+        text += `（上位${limit}件）\n`;
+      }
+      entries.forEach(([staffKey, workTypes, total]) => {
+        const dept = staffDeptMap[staffKey];
+        const deptLabel = dept ? `（${dept}）` : '';
+        text += `${staffKey}${deptLabel}: 合計 ${total.toFixed(2)}時間\n`;
+        Object.entries(workTypes)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([wt, h]) => {
+            text += `  - ${wt}: ${h.toFixed(2)}時間\n`;
+          });
+      });
+      return text;
+    }
+
+    function staffDisplayLabel(staffKey, staffDeptMap) {
+      const dept = staffDeptMap[staffKey];
+      return dept ? `${staffKey}（${dept}）` : staffKey;
+    }
 
     function formatSummarySection(title, summary, sortFn, labelFn, limit) {
       let entries = Object.entries(summary).sort(sortFn);
@@ -692,6 +920,117 @@
         btn.classList.toggle('border-transparent', !isActive);
         btn.classList.toggle('text-slate-500', !isActive);
       });
+
+      var chart = summaryCharts[tabId];
+      if (chart) chart.resize();
+    }
+
+    function destroySummaryCharts() {
+      Object.keys(summaryCharts).forEach(function(key) {
+        if (summaryCharts[key]) {
+          summaryCharts[key].destroy();
+          summaryCharts[key] = null;
+        }
+      });
+    }
+
+    function truncateChartLabel(label, maxLen) {
+      if (!maxLen) return String(label);
+      var text = String(label);
+      return text.length > maxLen ? text.slice(0, maxLen - 1) + '…' : text;
+    }
+
+    function getChartLabelMaxLen(tabId, horizontal) {
+      if (!horizontal || tabId === 'worktype' || tabId === 'staff') return null;
+      return 10;
+    }
+
+    function setSummaryChartHeight(wrap, horizontal, itemCount) {
+      if (!wrap) return;
+      wrap.style.height = horizontal
+        ? Math.max(220, itemCount * 30 + 48) + 'px'
+        : '220px';
+    }
+
+    function renderSummaryChart(tabId, entries, horizontal) {
+      if (summaryCharts[tabId]) {
+        summaryCharts[tabId].destroy();
+        summaryCharts[tabId] = null;
+      }
+
+      var canvas = document.getElementById('summaryChart-' + tabId);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      var wrap = canvas.parentElement;
+      var chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      if (chartEntries.length === 0) {
+        wrap.classList.add('hidden');
+        return;
+      }
+      wrap.classList.remove('hidden');
+      setSummaryChartHeight(wrap, horizontal, chartEntries.length);
+
+      var fullLabels = chartEntries.map(function(e) { return String(e[0]); });
+      var labelMaxLen = getChartLabelMaxLen(tabId, horizontal);
+      var labels = fullLabels.map(function(label) { return truncateChartLabel(label, labelMaxLen); });
+      var values = chartEntries.map(function(e) { return e[1]; });
+      var colors = chartEntries.map(function(_, i) { return CHART_COLORS[i % CHART_COLORS.length]; });
+      var tickFontSize = tabId === 'worktype' ? 10 : 11;
+
+      summaryCharts[tabId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '合計 (h)',
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 4,
+            maxBarThickness: horizontal ? 22 : 36
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: horizontal ? 'y' : 'x',
+          layout: {
+            padding: horizontal ? { left: 4, right: 8 } : { top: 4 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  var idx = items[0] && items[0].dataIndex;
+                  return fullLabels[idx] || items[0].label;
+                },
+                label: function(ctx) { return ctx.parsed[horizontal ? 'x' : 'y'].toFixed(2) + ' h'; }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { display: horizontal },
+              ticks: horizontal
+                ? { callback: function(v) { return v + 'h'; } }
+                : { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { display: !horizontal },
+              ticks: horizontal ? {
+                autoSkip: false,
+                font: { size: tickFontSize },
+                padding: 6,
+                crossAlign: 'far'
+              } : {
+                callback: function(v) { return v + 'h'; }
+              }
+            }
+          }
+        }
+      });
     }
 
     // AI応答を正規化して HTML 表示
@@ -709,10 +1048,15 @@
     }
 
     function buildAiPrompt() {
-      return '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n' +
-        '・拠点や担当者間の作業量の偏り\n' +
-        '・作業種別ごとの工数バランス\n' +
-        '・月ごとの推移や偏り\n' +
+      return '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n\n' +
+        '【分析方針】\n' +
+        '・各スタッフの部門名を必ず参照し、その部門の担当業務として作業種別を解釈してください（例: 人事総務部のスタッフに開発作業がなければ、開発業務の偏りとして指摘しない）。\n' +
+        '・「一般的な業務配分」や他部門・他担当者との比較で、特定の作業種別が多い・少ないといった偏り指摘は不要です。\n' +
+        '・各スタッフが実際に記録している作業内容（作業種別の内訳）を詳しく見て、「その人・その部門だからこそ担っている業務」という観点で分析してください。\n' +
+        '・部門と作業内容が明らかに不整合な場合のみ、データ入力ミスの可能性に触れてください。\n\n' +
+        '【記載内容】\n' +
+        '・部門・担当者ごとの実際の業務内容の特徴\n' +
+        '・作業種別・月ごとの傾向（部門の文脈で説明）\n' +
         '・気になる点や今後のアドバイス\n\n' +
         '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n' +
         cachedSummaryText;
@@ -724,31 +1068,48 @@
       if (!/^https?:\/\//i.test(u)) {
         throw new Error(label + ' API URL は http:// または https:// で始めてください');
       }
-      if (/^http:\/\//i.test(u) && window.location.protocol === 'https:') {
-        throw new Error(
-          label + ' の API が HTTP ですが、このページは HTTPS で配信されています（Mixed Content）。' +
-          ' 社内 Web サーバーでは HTTP で配信するか、API を HTTPS にしてください。'
-        );
-      }
     }
 
     async function callOpenAiCompat(url, model, apiKey, prompt, maxTokens, label) {
-      var apiUrl = String(url || '').trim();
+      var apiUrl = normalizeOpenAiCompatUrl(url);
       assertOpenAiCompatUrl(apiUrl, label || 'API');
+
+      // 社内IPは GAS プロキシ（Google サーバー）から到達不可 → ブラウザから直接接続
+      var privateNetwork = isPrivateNetworkUrl(apiUrl);
+      var useGasProxy = isMixedContentApiUrl(apiUrl) && isGasEnvironment() && !privateNetwork;
+
+      if (useGasProxy) {
+        return callGasProxy(apiUrl, model, apiKey, prompt, maxTokens);
+      }
 
       var headers = { 'Content-Type': 'application/json' };
       if (apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
 
-      var response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: maxTokens
-        })
+      var body = JSON.stringify({
+        model: model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: maxTokens
       });
+
+      var response;
+      try {
+        response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: headers,
+          body: body
+        });
+      } catch (fetchErr) {
+        if (privateNetwork && window.location.protocol === 'https:') {
+          throw new Error(
+            label + ' への接続に失敗しました（Mixed Content）。' +
+            ' 社内 HTTP API は GAS（HTTPS）から直接接続できません。' +
+            ' ブラウザで script.google.com の「安全でないコンテンツ」を許可するか、' +
+            ' 社内 HTTP サーバーでこのページを配信してください。'
+          );
+        }
+        throw new Error(label + ' への接続に失敗しました: ' + (fetchErr.message || fetchErr));
+      }
 
       if (!response.ok) {
         var errText = await response.text();
@@ -859,6 +1220,7 @@
         summaryArea.classList.remove('hidden');
 
         if (withAi) {
+          document.getElementById('instructionArea').classList.add('hidden');
           document.getElementById('fileUploadArea').classList.add('hidden');
           document.getElementById('initialActionArea').classList.add('hidden');
           document.getElementById('aiAnalyzeBtn').classList.add('hidden');
@@ -875,6 +1237,7 @@
     }
 
     async function buildAggregation(file) {
+      destroySummaryCharts();
       document.getElementById('summaryTableBody-staff').innerHTML = '';
       document.getElementById('summaryTableBody-worktype').innerHTML = '';
       document.getElementById('summaryTableBody-monthly').innerHTML = '';
@@ -884,6 +1247,8 @@
       const text = await readFileText(file);
       const lines = text.split(/\r?\n/);
       const staffSummary = {};
+      const staffDeptMap = {};
+      const staffWorkTypeSummary = {};
       const workTypeSummary = {};
       const monthlySummary = {};
 
@@ -896,10 +1261,15 @@
           if (!record) return;
 
           allRecords.push(record);
-          const { staffKey, workType, monthKey, hours, staff } = record;
+          const { staffKey, workType, monthKey, hours, staff, department } = record;
 
           if (staff && staffKey) {
             staffSummary[staffKey] = (staffSummary[staffKey] || 0) + hours;
+            if (department) staffDeptMap[staffKey] = department;
+            if (workType) {
+              if (!staffWorkTypeSummary[staffKey]) staffWorkTypeSummary[staffKey] = {};
+              staffWorkTypeSummary[staffKey][workType] = (staffWorkTypeSummary[staffKey][workType] || 0) + hours;
+            }
           }
           if (workType) {
             workTypeSummary[workType] = (workTypeSummary[workType] || 0) + hours;
@@ -910,7 +1280,9 @@
         }
       });
 
-      const staffEntries = Object.entries(staffSummary).sort(sortByHoursDesc);
+      const staffEntries = Object.entries(staffSummary)
+        .sort(sortByHoursDesc)
+        .map(([key, val]) => [staffDisplayLabel(key, staffDeptMap), val, key]);
       const workTypeEntries = Object.entries(workTypeSummary).sort(sortByHoursDesc);
       const monthlyEntries = Object.entries(monthlySummary)
         .sort(sortByMonthAsc)
@@ -920,7 +1292,18 @@
       document.getElementById('summaryTableBody-worktype').innerHTML = buildTableRows(workTypeEntries, 'worktype');
       document.getElementById('summaryTableBody-monthly').innerHTML = buildTableRows(monthlyEntries, 'monthly');
 
-      return formatSummarySection('【拠点・スタッフ別の集計結果】', staffSummary, sortByHoursDesc, null, AI_SUMMARY_LIMITS.staff) +
+      renderSummaryChart('staff', staffEntries, true);
+      renderSummaryChart('worktype', workTypeEntries, true);
+      renderSummaryChart('monthly', monthlyEntries, false);
+
+      return formatSummarySection(
+          '【拠点・スタッフ別の集計結果】',
+          staffSummary,
+          sortByHoursDesc,
+          key => staffDisplayLabel(key, staffDeptMap),
+          AI_SUMMARY_LIMITS.staff
+        ) +
+        formatStaffWorkTypeSection(staffWorkTypeSummary, staffDeptMap, AI_SUMMARY_LIMITS.staff) +
         formatSummarySection('【作業種別の集計結果】', workTypeSummary, sortByHoursDesc, null, AI_SUMMARY_LIMITS.workType) +
         formatSummarySection('【月別の集計結果】', monthlySummary, sortByMonthAsc, formatMonthLabel, AI_SUMMARY_LIMITS.month);
     }
