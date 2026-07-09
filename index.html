@@ -90,6 +90,7 @@
     .ai-result > *:last-child { margin-bottom: 0; }
     .drop-zone-active { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
     .summary-chart-wrap { position: relative; min-height: 220px; height: 220px; padding: 1rem 1rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    .summary-chart-wrap.summary-chart-wrap--scroll-x { overflow-x: auto; overflow-y: hidden; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 antialiased">
@@ -97,16 +98,23 @@
   <div class="max-w-6xl mx-auto w-full bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
       <div class="flex items-center justify-between gap-4">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2 min-w-0">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          <span>AI工数アナライザー</span>
-          <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded"></span>
-          <span id="headerProviderLabel" class="text-sm font-normal text-blue-100">(GB10)</span>
+          <span id="appTitleLabel" class="truncate">WDR工数ビューア</span>
+          <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded shrink-0"></span>
+          <span id="headerProviderLabel" class="text-sm font-normal text-blue-100 shrink-0 hidden sm:inline">(GB10)</span>
         </h2>
-        <button type="button" id="aiSettingsBtn" onclick="openSettingsModal()" title="AI設定"
-          class="hidden shrink-0 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="loadDataHeaderBtn" onclick="returnToUploadScreen()" title="ファイル選択画面に戻る"
+            class="hidden text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition flex items-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <span class="whitespace-nowrap">テキストデータを読み込む</span>
+          </button>
+          <button type="button" id="aiSettingsBtn" onclick="openSettingsModal()" title="AI設定"
+            class="hidden shrink-0 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -552,7 +560,8 @@
 
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.1.3';
+    const APP_VERSION = '2.2.1';
+    const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let dataMode = 'project';
     let allRecords = [];
@@ -695,6 +704,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      document.title = APP_DISPLAY_NAME;
+      document.getElementById('appTitleLabel').textContent = APP_DISPLAY_NAME;
       document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
       initAiSettings();
       initDropZone();
@@ -988,11 +999,17 @@
       }
     });
 
+    function setLoadDataHeaderVisible(visible) {
+      var btn = document.getElementById('loadDataHeaderBtn');
+      if (btn) btn.classList.toggle('hidden', !visible);
+    }
+
     function showInitialUploadUI() {
       document.getElementById('instructionArea').classList.remove('hidden');
       document.getElementById('fileUploadArea').classList.remove('hidden');
       document.getElementById('initialActionArea').classList.remove('hidden');
       document.getElementById('aiAnalyzeBtn').classList.add('hidden');
+      setLoadDataHeaderVisible(false);
     }
 
     function showPostAggregateUI(fileName) {
@@ -1001,6 +1018,44 @@
       document.getElementById('initialActionArea').classList.add('hidden');
       document.getElementById('aiAnalyzeBtnLabel').innerText = '「' + fileName + '」を分析する';
       document.getElementById('aiAnalyzeBtn').classList.remove('hidden');
+      setLoadDataHeaderVisible(true);
+    }
+
+    function returnToUploadScreen() {
+      destroySummaryCharts();
+      closeDetailModal();
+
+      allRecords = [];
+      allDeptRecords = [];
+      deptMeta = {};
+      deptPeriodFilter = { start: '', end: '' };
+      deptAnalysisMonthKeys = [];
+      includeTpTdNonBillable = false;
+      cachedSummaryText = '';
+      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
+      deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
+
+      var tpTdCheck = document.getElementById('includeTpTdNonBillable');
+      if (tpTdCheck) tpTdCheck.checked = false;
+      ['utilization', 'client', 'seiban', 'monthly'].forEach(function(id) {
+        var el = document.getElementById('deptSearch-' + id);
+        if (el) el.value = '';
+      });
+
+      document.getElementById('summaryArea').classList.add('hidden');
+      document.getElementById('resultArea').classList.add('hidden');
+      document.getElementById('resultContent').innerHTML = '';
+      document.getElementById('statusArea').classList.add('hidden');
+
+      var fileInput = document.getElementById('fileInput');
+      fileInput.value = '';
+      document.getElementById('dropZoneFileName').classList.add('hidden');
+      document.getElementById('dropZoneText').classList.remove('hidden');
+      document.querySelector('#aggregateBtn span').innerText = '集計する';
+      document.getElementById('aiAnalyzeCheck').checked = false;
+
+      showInitialUploadUI();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function setButtonDisabled(btn, disabled) {
@@ -1898,13 +1953,13 @@
       if (!canvas || typeof Chart === 'undefined') return;
 
       const wrap = canvas.parentElement;
-      const chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      const chartEntries = getChartEntries(tabId, entries);
       if (chartEntries.length === 0) {
         wrap.classList.add('hidden');
         return;
       }
       wrap.classList.remove('hidden');
-      setSummaryChartHeight(wrap, horizontal, chartEntries.length);
+      setSummaryChartHeight(wrap, horizontal, chartEntries.length, tabId);
 
       const fullLabels = chartEntries.map(e => String(e[0]));
       const values = chartEntries.map(e => e[1]);
@@ -1952,7 +2007,7 @@
               grid: { display: horizontal },
               ticks: horizontal
                 ? { callback: v => isPercent ? v + '%' : v + 'h' }
-                : { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+                : getVerticalChartTicks(tabId)
             },
             y: {
               beginAtZero: true,
@@ -2236,11 +2291,31 @@
       return 10;
     }
 
-    function setSummaryChartHeight(wrap, horizontal, itemCount) {
+    function getChartEntries(tabId, entries) {
+      return tabId === 'monthly' ? entries : entries.slice(0, SUMMARY_CHART_LIMIT);
+    }
+
+    function setSummaryChartHeight(wrap, horizontal, itemCount, tabId) {
       if (!wrap) return;
-      wrap.style.height = horizontal
-        ? Math.max(220, itemCount * 30 + 48) + 'px'
-        : '220px';
+      var scrollX = !horizontal && tabId === 'monthly' && itemCount > 12;
+      wrap.classList.toggle('summary-chart-wrap--scroll-x', scrollX);
+      if (horizontal) {
+        wrap.style.height = Math.max(220, itemCount * 30 + 48) + 'px';
+        wrap.style.minWidth = '';
+      } else if (tabId === 'monthly') {
+        wrap.style.height = '240px';
+        wrap.style.minWidth = itemCount > 12 ? (itemCount * 42 + 48) + 'px' : '';
+      } else {
+        wrap.style.height = '220px';
+        wrap.style.minWidth = '';
+      }
+    }
+
+    function getVerticalChartTicks(tabId) {
+      if (tabId === 'monthly') {
+        return { maxRotation: 45, minRotation: 0, autoSkip: false };
+      }
+      return { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 };
     }
 
     function renderSummaryChart(tabId, entries, horizontal) {
@@ -2253,13 +2328,13 @@
       if (!canvas || typeof Chart === 'undefined') return;
 
       var wrap = canvas.parentElement;
-      var chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      var chartEntries = getChartEntries(tabId, entries);
       if (chartEntries.length === 0) {
         wrap.classList.add('hidden');
         return;
       }
       wrap.classList.remove('hidden');
-      setSummaryChartHeight(wrap, horizontal, chartEntries.length);
+      setSummaryChartHeight(wrap, horizontal, chartEntries.length, tabId);
 
       var fullLabels = chartEntries.map(function(e) { return String(e[0]); });
       var labelMaxLen = getChartLabelMaxLen(tabId, horizontal);
@@ -2305,7 +2380,7 @@
               grid: { display: horizontal },
               ticks: horizontal
                 ? { callback: function(v) { return v + 'h'; } }
-                : { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+                : getVerticalChartTicks(tabId)
             },
             y: {
               beginAtZero: true,
@@ -2523,6 +2598,7 @@
       try {
         cachedSummaryText = await buildAggregation(fileInput.files[0]);
         summaryArea.classList.remove('hidden');
+        setLoadDataHeaderVisible(true);
 
         if (withAi) {
           document.getElementById('instructionArea').classList.add('hidden');
@@ -2615,7 +2691,7 @@
       const workTypeEntries = Object.entries(workTypeSummary).sort(sortByHoursDesc);
       const monthlyEntries = Object.entries(monthlySummary)
         .sort(sortByMonthAsc)
-        .map(([monthKey, val]) => [formatMonthLabel(monthKey), val, monthKey]);
+        .map(([monthKey, val]) => [formatMonthColumnLabel(monthKey), val, monthKey]);
 
       document.getElementById('summaryTableBody-staff').innerHTML = buildTableRows(staffEntries, 'staff');
       document.getElementById('summaryTableBody-worktype').innerHTML = buildTableRows(workTypeEntries, 'worktype');
