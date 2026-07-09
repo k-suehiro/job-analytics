@@ -560,7 +560,7 @@
 
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.1';
+    const APP_VERSION = '2.2.2';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let dataMode = 'project';
@@ -580,6 +580,7 @@
     let summaryCharts = { staff: null, worktype: null, monthly: null };
     let deptSummaryCharts = { utilization: null, client: null, seiban: null, monthly: null };
     const SUMMARY_CHART_LIMIT = 12;
+    const STAFF_CHART_MAX_INDIVIDUAL = 15;
     const CHART_COLORS = [
       '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899',
       '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6',
@@ -1830,6 +1831,26 @@
       });
     }
 
+    function staffChartDisplayName(staffKey) {
+      return extractStaffNameFromKey(staffKey);
+    }
+
+    /** 担当者別積み上げ: 原則は全員個別表示。「その他」は16名以上かつ末尾2名以上のときのみ */
+    function selectStaffKeysForBreakdownChart(staffTotals) {
+      const sorted = Object.entries(staffTotals)
+        .sort((a, b) => b[1] - a[1])
+        .map(([staff]) => staff);
+      if (sorted.length <= STAFF_CHART_MAX_INDIVIDUAL) {
+        return { shown: sorted, other: [] };
+      }
+      const head = sorted.slice(0, STAFF_CHART_MAX_INDIVIDUAL - 1);
+      const tail = sorted.slice(STAFF_CHART_MAX_INDIVIDUAL - 1);
+      if (tail.length >= 2) {
+        return { shown: head, other: tail };
+      }
+      return { shown: sorted.slice(0, STAFF_CHART_MAX_INDIVIDUAL), other: [] };
+    }
+
     function buildStaffBreakdownChartData(entries) {
       const staffTotals = {};
       entries.forEach(e => {
@@ -1837,13 +1858,10 @@
           staffTotals[staff] = (staffTotals[staff] || 0) + hours;
         });
       });
-      const topStaff = Object.entries(staffTotals)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([staff]) => staff);
+      const { shown, other } = selectStaffKeysForBreakdownChart(staffTotals);
 
-      const datasets = topStaff.map((staff, i) => ({
-        label: staff,
+      const datasets = shown.map((staff, i) => ({
+        label: staffChartDisplayName(staff),
         staffKey: staff,
         data: entries.map(e => (e.staffHours && e.staffHours[staff]) || 0),
         backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
@@ -1851,22 +1869,25 @@
         maxBarThickness: 22
       }));
 
-      datasets.push({
-        label: 'その他',
-        staffKey: '__other__',
-        data: entries.map(e => {
-          let other = 0;
-          Object.entries(e.staffHours || {}).forEach(([staff, hours]) => {
-            if (!topStaff.includes(staff)) other += hours;
-          });
-          return other;
-        }),
-        backgroundColor: '#94a3b8',
-        borderRadius: 2,
-        maxBarThickness: 22
-      });
+      if (other.length > 0) {
+        const otherSet = new Set(other);
+        datasets.push({
+          label: 'その他',
+          staffKey: '__other__',
+          data: entries.map(e => {
+            let sum = 0;
+            Object.entries(e.staffHours || {}).forEach(([staff, hours]) => {
+              if (otherSet.has(staff)) sum += hours;
+            });
+            return sum;
+          }),
+          backgroundColor: '#94a3b8',
+          borderRadius: 2,
+          maxBarThickness: 22
+        });
+      }
 
-      return { datasets, topStaff };
+      return { datasets, shownStaff: shown, otherStaff: other };
     }
 
     function renderDeptStaffBreakdownChart(tabId, entries) {
