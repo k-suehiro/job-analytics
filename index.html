@@ -88,31 +88,59 @@
             <p class="text-sm text-slate-600 mb-4 leading-relaxed">
               このツールで分析する工数データは、<span class="font-medium text-slate-700">WDR（Web Daily Report）</span>からダウンロードしたテキストファイルを使用します。ファイル形式は自動判定され、製番別または部門・グループ別の集計が行われます。
             </p>
+            <p class="text-sm font-medium text-slate-700 mb-3">マネージャーの場合（WDR 管理メニューから取得）</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-5">
+              <div class="rounded-lg border border-blue-100 bg-white/70 p-4">
+                <p class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-600 text-white text-xs shrink-0">A</span>
+                  製番別データ（1案件の工数分析）
+                </p>
+                <ol class="space-y-2 text-sm text-slate-600">
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
+                    <span class="pt-0.5">管理メニューの<strong class="font-medium text-slate-700">「検索」</strong>を開き、製番を入力して検索します。</span>
+                  </li>
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">2</span>
+                    <span class="pt-0.5">検索結果に表示された<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
+                  </li>
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
+                    <span class="pt-0.5">モーダル内の<strong class="font-medium text-slate-700">「ダウンロード」</strong>をクリックし、テキストデータを保存します。</span>
+                  </li>
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">4</span>
+                    <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
+                  </li>
+                </ol>
+              </div>
+              <div class="rounded-lg border border-indigo-100 bg-white/70 p-4">
+                <p class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-indigo-600 text-white text-xs shrink-0">B</span>
+                  部門・グループ別データ（稼働率・クライアント分析）
+                </p>
+                <ol class="space-y-2 text-sm text-slate-600">
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">1</span>
+                    <span class="pt-0.5">管理メニューで、対象の<strong class="font-medium text-slate-700">部門またはグループ</strong>を選択します。</span>
+                  </li>
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">2</span>
+                    <span class="pt-0.5">分析したい<strong class="font-medium text-slate-700">期間</strong>を設定し、工数データを<strong class="font-medium text-slate-700">「ダウンロード」</strong>してテキストファイルを保存します。</span>
+                  </li>
+                  <li class="flex gap-2.5">
+                    <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">3</span>
+                    <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+            <p class="text-sm font-medium text-slate-700 mb-2">マネージャー以外の場合</p>
             <p class="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
               <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-600 text-white text-xs">A</span>
               製番別データ（1案件の工数分析）
             </p>
-            <p class="text-sm font-medium text-slate-700 mb-2">マネージャーの場合（管理ページから取得）</p>
-            <ol class="space-y-2 text-sm text-slate-600 mb-4">
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
-                <span class="pt-0.5">左メニューの<strong class="font-medium text-slate-700">「検索」</strong>を開き、製番を入力して検索します。</span>
-              </li>
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">2</span>
-                <span class="pt-0.5">検索結果に表示された<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
-              </li>
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
-                <span class="pt-0.5">モーダル内の<strong class="font-medium text-slate-700">「ダウンロード」</strong>をクリックし、テキストデータを保存します。</span>
-              </li>
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">4</span>
-                <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
-              </li>
-            </ol>
-            <p class="text-sm font-medium text-slate-700 mb-2">マネージャー以外の場合</p>
-            <ol class="space-y-2 text-sm text-slate-600 mb-5">
+            <ol class="space-y-2 text-sm text-slate-600">
               <li class="flex gap-2.5">
                 <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
                 <span class="pt-0.5">WDRの登録済み日報の中にある<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
@@ -123,24 +151,6 @@
               </li>
               <li class="flex gap-2.5">
                 <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
-                <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
-              </li>
-            </ol>
-            <p class="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
-              <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-indigo-600 text-white text-xs">B</span>
-              部門・グループ別データ（稼働率・クライアント分析）
-            </p>
-            <ol class="space-y-2 text-sm text-slate-600">
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">1</span>
-                <span class="pt-0.5">WDRの管理ページで、対象の<strong class="font-medium text-slate-700">部門またはグループ</strong>を選択します。</span>
-              </li>
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">2</span>
-                <span class="pt-0.5">分析したい<strong class="font-medium text-slate-700">期間</strong>を設定し、工数データを<strong class="font-medium text-slate-700">「ダウンロード」</strong>してテキストファイルを保存します。</span>
-              </li>
-              <li class="flex gap-2.5">
-                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">3</span>
                 <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
               </li>
             </ol>
@@ -190,12 +200,20 @@
         <div id="departmentMetaArea" class="hidden mb-4 rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3">
           <p id="deptScopeLabel" class="text-sm font-semibold text-slate-800"></p>
           <p id="deptDataPeriod" class="text-xs text-slate-500 mt-1"></p>
-          <div class="flex flex-wrap items-center gap-2 mt-3">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-3">
             <span class="text-xs font-medium text-slate-600">分析期間</span>
             <input id="deptPeriodStart" type="date" class="text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             <span class="text-slate-400 text-sm">〜</span>
             <input id="deptPeriodEnd" type="date" class="text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             <button type="button" onclick="applyDepartmentPeriodFilter()" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition">適用</button>
+            <span class="hidden sm:inline text-slate-300">|</span>
+            <label class="flex items-start gap-2 cursor-pointer select-none max-w-md">
+              <input id="includeTpTdNonBillable" type="checkbox" onchange="onIncludeTpTdChange()"
+                class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 shrink-0">
+              <span class="text-xs text-slate-600 leading-relaxed">
+                <span class="font-medium text-slate-700">TP/TD製番</span>の売上無・特定無も稼働に含める
+              </span>
+            </label>
           </div>
         </div>
 
@@ -504,6 +522,7 @@
     let allDeptRecords = [];
     let deptMeta = {};
     let deptPeriodFilter = { start: '', end: '' };
+    let includeTpTdNonBillable = false;
     let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
     let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
     let deptSearchTimers = {};
@@ -517,6 +536,8 @@
       '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6',
       '#06b6d4', '#0ea5e9'
     ];
+    const UTIL_STANDARD_COLOR = '#6366f1';
+    const UTIL_TP_TD_COLOR = '#f59e0b';
 
     const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null, deptStaff: 20, deptClient: 15, deptSeiban: 15, deptMonth: null };
     const GB10_MODELS = [
@@ -1000,6 +1021,21 @@
       return meta;
     }
 
+    function isTpTdSeiban(seibanRaw, seiban) {
+      const code = String(seibanRaw || seiban || '').trim().toUpperCase();
+      return code.startsWith('TP') || code.startsWith('TD');
+    }
+
+    function isTpTdNonBillableRecord(record) {
+      return isTpTdSeiban(record.seibanRaw, record.seiban) && !record.hasSales && !record.hasTokutei;
+    }
+
+    function isUtilizationProductive(record) {
+      if (record.isProductive) return true;
+      if (!includeTpTdNonBillable) return false;
+      return isTpTdNonBillableRecord(record);
+    }
+
     function parseDepartmentRecord(cols) {
       if (cols.length < 15) return null;
       const hours = parseFloat(cols[14]);
@@ -1112,6 +1148,13 @@
         alert('分析期間の開始日は終了日以前にしてください。');
         return;
       }
+      includeTpTdNonBillable = document.getElementById('includeTpTdNonBillable').checked;
+      renderDepartmentSummary();
+      cachedSummaryText = buildDepartmentSummaryText();
+    }
+
+    function onIncludeTpTdChange() {
+      includeTpTdNonBillable = document.getElementById('includeTpTdNonBillable').checked;
       renderDepartmentSummary();
       cachedSummaryText = buildDepartmentSummaryText();
     }
@@ -1195,9 +1238,17 @@
       }
 
       if (tabId === 'utilization') {
-        renderDeptChart('utilization', entries.map(e => [e.label, e.rate, e.key]), true, '%');
+        renderDeptUtilizationChart(entries);
       } else if (tabId === 'monthly') {
         renderDeptChart('monthly', entries.map(e => [e.label, e.hours, e.key]), false, 'h');
+      } else if (tabId === 'seiban') {
+        renderDeptChart(
+          'seiban',
+          entries.map(e => [e.label, e.hours, e.key]),
+          true,
+          'h',
+          entries.map(e => isTpTdSeiban(e.key, e.key) ? UTIL_TP_TD_COLOR : null)
+        );
       } else {
         renderDeptChart(tabId, entries.map(e => [e.label, e.hours, e.key]), true, 'h');
       }
@@ -1211,9 +1262,13 @@
 
       records.forEach(r => {
         if (r.staffKey) {
-          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { productive: 0, total: 0 };
+          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0 };
           staffMap[r.staffKey].total += r.hours;
-          if (r.isProductive) staffMap[r.staffKey].productive += r.hours;
+          if (r.isProductive) {
+            staffMap[r.staffKey].standard += r.hours;
+          } else if (includeTpTdNonBillable && isTpTdNonBillableRecord(r)) {
+            staffMap[r.staffKey].tpTd += r.hours;
+          }
         }
         if (r.client) {
           if (!clientMap[r.client]) clientMap[r.client] = { hours: 0, staff: new Set() };
@@ -1230,18 +1285,25 @@
           if (!monthlyMap[r.monthKey]) monthlyMap[r.monthKey] = { hours: 0, productive: 0, total: 0 };
           monthlyMap[r.monthKey].hours += r.hours;
           monthlyMap[r.monthKey].total += r.hours;
-          if (r.isProductive) monthlyMap[r.monthKey].productive += r.hours;
+          if (isUtilizationProductive(r)) monthlyMap[r.monthKey].productive += r.hours;
         }
       });
 
       const utilization = Object.entries(staffMap).map(([key, val]) => {
-        const rate = val.total > 0 ? (val.productive / val.total) * 100 : 0;
+        const productiveHours = val.standard + val.tpTd;
+        const rate = val.total > 0 ? (productiveHours / val.total) * 100 : 0;
+        const standardRate = val.total > 0 ? (val.standard / val.total) * 100 : 0;
+        const tpTdRate = val.total > 0 ? (val.tpTd / val.total) * 100 : 0;
         return {
           key,
           label: key,
-          productiveHours: val.productive,
+          productiveHours,
+          standardHours: val.standard,
+          tpTdHours: val.tpTd,
           totalHours: val.total,
           rate,
+          standardRate,
+          tpTdRate,
           searchText: key
         };
       }).sort((a, b) => b.rate - a.rate || b.totalHours - a.totalHours);
@@ -1295,7 +1357,101 @@
       });
     }
 
-    function renderDeptChart(tabId, entries, horizontal, unit) {
+    function renderDeptUtilizationChart(entries) {
+      const tabId = 'utilization';
+      if (deptSummaryCharts[tabId]) {
+        deptSummaryCharts[tabId].destroy();
+        deptSummaryCharts[tabId] = null;
+      }
+
+      const canvas = document.getElementById('deptChart-' + tabId);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const wrap = canvas.parentElement;
+      const chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      if (chartEntries.length === 0) {
+        wrap.classList.add('hidden');
+        return;
+      }
+      wrap.classList.remove('hidden');
+      setSummaryChartHeight(wrap, true, chartEntries.length);
+
+      const fullLabels = chartEntries.map(e => String(e.label));
+      const showTpTdLegend = includeTpTdNonBillable && chartEntries.some(e => e.tpTdRate > 0);
+
+      deptSummaryCharts[tabId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: fullLabels.map(l => truncateChartLabel(l, null)),
+          datasets: [
+            {
+              label: '売上/特定あり',
+              data: chartEntries.map(e => e.standardRate),
+              backgroundColor: UTIL_STANDARD_COLOR,
+              borderRadius: 4,
+              maxBarThickness: 22
+            },
+            {
+              label: 'TP/TD（売上無・特定無）',
+              data: chartEntries.map(e => e.tpTdRate),
+              backgroundColor: UTIL_TP_TD_COLOR,
+              borderRadius: 4,
+              maxBarThickness: 22
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          layout: { padding: { left: 4, right: 8 } },
+          plugins: {
+            legend: {
+              display: showTpTdLegend,
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0] && items[0].dataIndex;
+                  return fullLabels[idx] || items[0].label;
+                },
+                label: function(ctx) {
+                  const entry = chartEntries[ctx.dataIndex];
+                  if (ctx.datasetIndex === 0) {
+                    return `売上/特定あり: ${entry.standardRate.toFixed(1)}% (${entry.standardHours.toFixed(2)}h)`;
+                  }
+                  if (entry.tpTdRate <= 0) return null;
+                  return `TP/TD（売上無・特定無）: ${entry.tpTdRate.toFixed(1)}% (${entry.tpTdHours.toFixed(2)}h)`;
+                },
+                footer: function(items) {
+                  const entry = chartEntries[items[0].dataIndex];
+                  return `合計稼働率: ${entry.rate.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              beginAtZero: true,
+              max: 100,
+              grid: { display: false },
+              ticks: { callback: v => v + '%' }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              grid: { display: true },
+              ticks: { autoSkip: false, font: { size: 11 }, padding: 6, crossAlign: 'far' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderDeptChart(tabId, entries, horizontal, unit, customColors) {
       if (deptSummaryCharts[tabId]) {
         deptSummaryCharts[tabId].destroy();
         deptSummaryCharts[tabId] = null;
@@ -1315,7 +1471,9 @@
 
       const fullLabels = chartEntries.map(e => String(e[0]));
       const values = chartEntries.map(e => e[1]);
-      const colors = chartEntries.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+      const colors = customColors
+        ? customColors.map((c, i) => c || CHART_COLORS[i % CHART_COLORS.length])
+        : chartEntries.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
       const isPercent = unit === '%';
 
       deptSummaryCharts[tabId] = new Chart(canvas, {
@@ -1393,7 +1551,8 @@
         ? `${deptPeriodFilter.start} 〜 ${deptPeriodFilter.end}` : '全期間';
 
       let text = `【部門・グループ】${deptMeta.scopeLabel || ''}\n`;
-      text += `【分析期間】${periodLabel}\n\n`;
+      text += `【分析期間】${periodLabel}\n`;
+      text += `【TP/TD製番の売上無・特定無】${includeTpTdNonBillable ? '稼働に含める' : '稼働に含めない'}\n\n`;
 
       text += '【個人別・稼働率】\n';
       sums.utilization.slice(0, AI_SUMMARY_LIMITS.deptStaff).forEach(e => {
@@ -1501,7 +1660,7 @@
         columns = DEPT_DETAIL_COLUMNS[tab];
         const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
         if (tab === 'utilization') {
-          const productive = records.reduce((sum, r) => sum + (r.isProductive ? r.hours : 0), 0);
+          const productive = records.reduce((sum, r) => sum + (isUtilizationProductive(r) ? r.hours : 0), 0);
           const rate = totalHours > 0 ? (productive / totalHours) * 100 : 0;
           summaryText = `${records.length}件 / 稼働 ${productive.toFixed(2)}h / 総時間 ${totalHours.toFixed(2)}h / 稼働率 ${rate.toFixed(1)}%`;
         } else {
@@ -1941,6 +2100,9 @@
       allDeptRecords = [];
       deptMeta = {};
       deptPeriodFilter = { start: '', end: '' };
+      includeTpTdNonBillable = false;
+      const tpTdCheck = document.getElementById('includeTpTdNonBillable');
+      if (tpTdCheck) tpTdCheck.checked = false;
       deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
       ['utilization', 'client', 'seiban', 'monthly'].forEach(function(id) {
         const el = document.getElementById('deptSearch-' + id);
