@@ -100,7 +100,10 @@
       <div class="flex items-center justify-between gap-4">
         <h2 class="text-xl font-bold text-white flex items-center gap-2 min-w-0">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          <span id="appTitleLabel" class="truncate">WDR工数ビューア</span>
+          <button type="button" id="appTitleBtn" onclick="openReleaseNotesModal(false)" title="リリースノートを表示"
+            class="truncate text-left font-bold hover:text-blue-100 underline decoration-white/30 hover:decoration-white/70 underline-offset-2 transition">
+            WDR工数ビューア
+          </button>
           <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded shrink-0"></span>
           <span id="headerProviderLabel" class="text-sm font-normal text-blue-100 shrink-0 hidden sm:inline">(GB10)</span>
         </h2>
@@ -229,15 +232,17 @@
       </div>
 
       <div id="aiAnalyzeArea" class="hidden">
-        <p class="text-xs text-slate-500 mb-2 text-center">分析の切り口を選んでください</p>
         <div class="grid grid-cols-3 gap-2">
-          <button type="button" id="aiAnalyzeBtn0" onclick="runAiAnalysisForButton(0)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+          <button type="button" id="aiAnalyzeBtn0" onclick="runAiAnalysisForButton(0)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"></path></svg>
             <span class="ai-btn-label">業務サマリー</span>
           </button>
-          <button type="button" id="aiAnalyzeBtn1" onclick="runAiAnalysisForButton(1)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+          <button type="button" id="aiAnalyzeBtn1" onclick="runAiAnalysisForButton(1)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3v18M3 11h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"></path></svg>
             <span class="ai-btn-label">偏り・集中度</span>
           </button>
-          <button type="button" id="aiAnalyzeBtn2" onclick="runAiAnalysisForButton(2)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight">
+          <button type="button" id="aiAnalyzeBtn2" onclick="runAiAnalysisForButton(2)" class="ai-analyze-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-2 rounded-lg transition duration-200 text-sm leading-tight flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M10.3 3.9l-7 12.1A2 2 0 005 19h14a2 2 0 001.7-3l-7-12.1a2 2 0 00-3.4 0z"></path></svg>
             <span class="ai-btn-label">気になる点</span>
           </button>
         </div>
@@ -569,10 +574,70 @@
     </div>
   </div>
 
+  <!-- リリースノートモーダル -->
+  <div id="releaseNotesModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50" onclick="closeReleaseNotesModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl shrink-0">
+        <h3 id="releaseNotesModalTitle" class="text-base font-bold text-slate-800">リリースノート</h3>
+        <button type="button" onclick="closeReleaseNotesModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div id="releaseNotesModalBody" class="p-5 overflow-y-auto flex-1 min-h-0 space-y-5"></div>
+      <div class="px-5 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl shrink-0">
+        <button type="button" onclick="closeReleaseNotesModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.8';
+    const APP_VERSION = '2.2.10';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
+    const RELEASE_NOTES_SEEN_KEY = 'wdrViewer_releaseNotesSeen';
+    const RELEASE_NOTES = {
+      '2.2.9': [
+        'バージョン更新時の初回アクセスでリリースノートを自動表示',
+        'タイトル（WDR工数ビューア）をクリックしていつでもリリースノートを表示'
+      ],
+      '2.2.8': [
+        'AI分析結果を3つの分析ボタン直下に表示（集計一覧の上）'
+      ],
+      '2.2.7': [
+        '部門別・月別グラフに平均稼働率の折れ線を重ね表示（左軸: 合計時間、右軸: 稼働率%）'
+      ],
+      '2.2.6': [
+        'ヘッダー列名の別名対応（事業所=所属、作業内容=業務内容、製番=製造番号、クライアント=得意先 等）',
+        '得意先・製造番号形式を部門・グループ別として読み込み可能に'
+      ],
+      '2.2.5': [
+        'ヘッダー行の厳密検証を追加（誤った列マッピングを防止）',
+        '部門別もヘッダー列名から列位置を自動判定'
+      ],
+      '2.2.4': [
+        'AI分析を3パターンに分割（横並びボタン）',
+        'チェック時の自動実行は業務サマリー（製番別）またはチーム総括（部門別）'
+      ],
+      '2.2.3': [
+        '製番別モードで作業内容が役務単価になる不具合を修正'
+      ],
+      '2.2.2': [
+        'クライアント別・製番別グラフの担当者表示を改善'
+      ],
+      '2.2.1': [
+        '製番別モードの月別グラフを期間内の全月表示に変更',
+        '月別ラベルを 26/07 形式に統一'
+      ],
+      '2.2.0': [
+        'アプリ名を「WDR工数ビューア」に変更',
+        'ヘッダーに「テキストデータを読み込む」ボタンを追加'
+      ]
+    };
+
+    let releaseNotesMarkSeenOnClose = false;
 
     let projectColMap = null;
     let deptColMap = null;
@@ -808,11 +873,97 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.title = APP_DISPLAY_NAME;
-      document.getElementById('appTitleLabel').textContent = APP_DISPLAY_NAME;
+      var titleBtn = document.getElementById('appTitleBtn');
+      if (titleBtn) titleBtn.textContent = APP_DISPLAY_NAME;
       document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
       initAiSettings();
       initDropZone();
+      initReleaseNotes();
     });
+
+    function compareVersionsDesc(a, b) {
+      const pa = a.split('.').map(Number);
+      const pb = b.split('.').map(Number);
+      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const diff = (pb[i] || 0) - (pa[i] || 0);
+        if (diff !== 0) return diff;
+      }
+      return 0;
+    }
+
+    function getReleaseNotesSeen() {
+      try {
+        return JSON.parse(localStorage.getItem(RELEASE_NOTES_SEEN_KEY) || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function markReleaseNotesSeen(version) {
+      const seen = getReleaseNotesSeen();
+      seen[version] = true;
+      try {
+        localStorage.setItem(RELEASE_NOTES_SEEN_KEY, JSON.stringify(seen));
+      } catch (_) {}
+    }
+
+    function shouldAutoShowReleaseNotes() {
+      const items = RELEASE_NOTES[APP_VERSION];
+      if (!items || !items.length) return false;
+      return !getReleaseNotesSeen()[APP_VERSION];
+    }
+
+    function renderReleaseNotesModalContent() {
+      const body = document.getElementById('releaseNotesModalBody');
+      const title = document.getElementById('releaseNotesModalTitle');
+      if (!body || !title) return;
+
+      title.textContent = 'リリースノート（v' + APP_VERSION + '）';
+
+      const versions = Object.keys(RELEASE_NOTES).sort(compareVersionsDesc);
+      body.innerHTML = versions.map(function(version) {
+        const items = RELEASE_NOTES[version];
+        const isCurrent = version === APP_VERSION;
+        const headingClass = isCurrent
+          ? 'text-sm font-bold text-indigo-700'
+          : 'text-sm font-semibold text-slate-600';
+        const boxClass = isCurrent
+          ? 'rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3'
+          : 'rounded-lg border border-slate-100 bg-slate-50/50 px-4 py-3';
+        const list = items.map(function(item) {
+          return '<li class="text-sm text-slate-700 leading-relaxed">' + escapeHtml(item) + '</li>';
+        }).join('');
+        return '<section class="' + boxClass + '">' +
+          '<h4 class="' + headingClass + ' mb-2">v' + escapeHtml(version) + (isCurrent ? ' <span class="text-xs font-medium text-indigo-500">（現在のバージョン）</span>' : '') + '</h4>' +
+          '<ul class="list-disc list-inside space-y-1">' + list + '</ul>' +
+          '</section>';
+      }).join('');
+    }
+
+    function openReleaseNotesModal(markSeenOnClose) {
+      renderReleaseNotesModalContent();
+      releaseNotesMarkSeenOnClose = !!markSeenOnClose;
+      document.getElementById('releaseNotesModal').classList.remove('hidden');
+    }
+
+    function closeReleaseNotesModal() {
+      document.getElementById('releaseNotesModal').classList.add('hidden');
+      if (releaseNotesMarkSeenOnClose) {
+        markReleaseNotesSeen(APP_VERSION);
+        releaseNotesMarkSeenOnClose = false;
+      }
+    }
+
+    function initReleaseNotes() {
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !document.getElementById('releaseNotesModal').classList.contains('hidden')) {
+          closeReleaseNotesModal();
+        }
+      });
+      if (shouldAutoShowReleaseNotes()) {
+        openReleaseNotesModal(true);
+      }
+    }
 
     function normalizeAiSettings(saved) {
       var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved || {});
