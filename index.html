@@ -43,6 +43,8 @@
     .summary-table { table-layout: fixed; width: 100%; }
     .summary-table .col-label { word-break: break-word; overflow-wrap: anywhere; }
     .summary-table .col-hours { width: 6.5rem; }
+    .summary-table .col-mid { width: 5.5rem; }
+    .summary-table .col-rate { width: 5rem; }
     .summary-row { cursor: pointer; }
     .summary-row:hover { background-color: #eff6ff; }
     .ai-result-scroll { padding: 1.25rem; }
@@ -83,8 +85,12 @@
           </div>
           <div class="min-w-0 flex-1">
             <h3 class="text-sm font-semibold text-slate-800 mb-2">テキストデータの取得方法</h3>
-            <p class="text-sm text-slate-600 mb-3 leading-relaxed">
-              このツールで分析する工数データは、<span class="font-medium text-slate-700">WDR（Web Daily Report）</span>からダウンロードしたテキストファイルを使用します。
+            <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+              このツールで分析する工数データは、<span class="font-medium text-slate-700">WDR（Web Daily Report）</span>からダウンロードしたテキストファイルを使用します。ファイル形式は自動判定され、製番別または部門・グループ別の集計が行われます。
+            </p>
+            <p class="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-600 text-white text-xs">A</span>
+              製番別データ（1案件の工数分析）
             </p>
             <p class="text-sm font-medium text-slate-700 mb-2">マネージャーの場合（管理ページから取得）</p>
             <ol class="space-y-2 text-sm text-slate-600 mb-4">
@@ -106,7 +112,7 @@
               </li>
             </ol>
             <p class="text-sm font-medium text-slate-700 mb-2">マネージャー以外の場合</p>
-            <ol class="space-y-2 text-sm text-slate-600">
+            <ol class="space-y-2 text-sm text-slate-600 mb-5">
               <li class="flex gap-2.5">
                 <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">1</span>
                 <span class="pt-0.5">WDRの登録済み日報の中にある<strong class="font-medium text-slate-700">製番</strong>をクリックすると、詳細モーダルが開きます。</span>
@@ -117,6 +123,24 @@
               </li>
               <li class="flex gap-2.5">
                 <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-semibold">3</span>
+                <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
+              </li>
+            </ol>
+            <p class="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-indigo-600 text-white text-xs">B</span>
+              部門・グループ別データ（稼働率・クライアント分析）
+            </p>
+            <ol class="space-y-2 text-sm text-slate-600">
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">1</span>
+                <span class="pt-0.5">WDRの管理ページで、対象の<strong class="font-medium text-slate-700">部門またはグループ</strong>を選択します。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">2</span>
+                <span class="pt-0.5">分析したい<strong class="font-medium text-slate-700">期間</strong>を設定し、工数データを<strong class="font-medium text-slate-700">「ダウンロード」</strong>してテキストファイルを保存します。</span>
+              </li>
+              <li class="flex gap-2.5">
+                <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-semibold">3</span>
                 <span class="pt-0.5">保存したファイルを、下記のアップロード欄から選択してご利用ください。</span>
               </li>
             </ol>
@@ -157,11 +181,25 @@
       </button>
 
       <div id="summaryArea" class="hidden mt-8">
-        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2 flex-wrap">
           <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
           データ集計結果（分析の根拠）
+          <span id="summaryModeBadge" class="normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"></span>
         </h3>
-        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+
+        <div id="departmentMetaArea" class="hidden mb-4 rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3">
+          <p id="deptScopeLabel" class="text-sm font-semibold text-slate-800"></p>
+          <p id="deptDataPeriod" class="text-xs text-slate-500 mt-1"></p>
+          <div class="flex flex-wrap items-center gap-2 mt-3">
+            <span class="text-xs font-medium text-slate-600">分析期間</span>
+            <input id="deptPeriodStart" type="date" class="text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <span class="text-slate-400 text-sm">〜</span>
+            <input id="deptPeriodEnd" type="date" class="text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <button type="button" onclick="applyDepartmentPeriodFilter()" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition">適用</button>
+          </div>
+        </div>
+
+        <div id="projectSummaryContainer" class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
           <div class="flex border-b border-slate-200 bg-slate-50">
             <button type="button" data-summary-tab="staff" onclick="switchSummaryTab('staff')"
               class="summary-tab px-4 py-2.5 text-sm font-medium border-b-2 border-blue-600 text-blue-600">
@@ -215,6 +253,105 @@
                 </tr>
               </thead>
               <tbody id="summaryTableBody-monthly" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="departmentSummaryContainer" class="hidden bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+          <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+            <button type="button" data-dept-tab="utilization" onclick="switchDeptSummaryTab('utilization')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600">
+              個人別・稼働率
+            </button>
+            <button type="button" data-dept-tab="client" onclick="switchDeptSummaryTab('client')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              クライアント別
+            </button>
+            <button type="button" data-dept-tab="seiban" onclick="switchDeptSummaryTab('seiban')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              製番別
+            </button>
+            <button type="button" data-dept-tab="monthly" onclick="switchDeptSummaryTab('monthly')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              月別
+            </button>
+          </div>
+          <div id="deptPanel-utilization" class="dept-summary-panel">
+            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-utilization" placeholder="作業者名で絞り込み…" oninput="onDeptSearchInput('utilization', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="summary-chart-wrap"><canvas id="deptChart-utilization"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <table class="summary-table divide-y divide-slate-200">
+              <thead class="bg-slate-50 sticky top-0">
+                <tr>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働 (h)</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">総時間 (h)</th>
+                  <th scope="col" class="col-rate px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働率</th>
+                </tr>
+              </thead>
+              <tbody id="deptTableBody-utilization" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+            </div>
+          </div>
+          <div id="deptPanel-client" class="dept-summary-panel hidden">
+            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-client" placeholder="クライアント名で絞り込み…" oninput="onDeptSearchInput('client', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="summary-chart-wrap"><canvas id="deptChart-client"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <table class="summary-table divide-y divide-slate-200">
+              <thead class="bg-slate-50 sticky top-0">
+                <tr>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
+                  <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
+                </tr>
+              </thead>
+              <tbody id="deptTableBody-client" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+            </div>
+          </div>
+          <div id="deptPanel-seiban" class="dept-summary-panel hidden">
+            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-seiban" placeholder="製番・クライアントで絞り込み…" oninput="onDeptSearchInput('seiban', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="summary-chart-wrap"><canvas id="deptChart-seiban"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <table class="summary-table divide-y divide-slate-200">
+              <thead class="bg-slate-50 sticky top-0">
+                <tr>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">製番</th>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
+                  <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
+                </tr>
+              </thead>
+              <tbody id="deptTableBody-seiban" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+            </div>
+          </div>
+          <div id="deptPanel-monthly" class="dept-summary-panel hidden">
+            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-monthly" placeholder="年月で絞り込み…" oninput="onDeptSearchInput('monthly', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="summary-chart-wrap"><canvas id="deptChart-monthly"></canvas></div>
+            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <table class="summary-table divide-y divide-slate-200">
+              <thead class="bg-slate-50 sticky top-0">
+                <tr>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">年月</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">平均稼働率</th>
+                  <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
+                </tr>
+              </thead>
+              <tbody id="deptTableBody-monthly" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
             </div>
           </div>
@@ -360,12 +497,20 @@
   </div>
 
   <script>
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '2.0.0';
 
+    let dataMode = 'project';
     let allRecords = [];
+    let allDeptRecords = [];
+    let deptMeta = {};
+    let deptPeriodFilter = { start: '', end: '' };
+    let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
+    let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
+    let deptSearchTimers = {};
     let cachedSummaryText = '';
     let detailModalState = { records: [], columns: [], sortKey: 'workDate', sortDir: 'asc' };
     let summaryCharts = { staff: null, worktype: null, monthly: null };
+    let deptSummaryCharts = { utilization: null, client: null, seiban: null, monthly: null };
     const SUMMARY_CHART_LIMIT = 12;
     const CHART_COLORS = [
       '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899',
@@ -373,7 +518,7 @@
       '#06b6d4', '#0ea5e9'
     ];
 
-    const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null };
+    const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null, deptStaff: 20, deptClient: 15, deptSeiban: 15, deptMonth: null };
     const GB10_MODELS = [
       'qwen36-35b-a3bfp8no-think',
       'qwen3.6-35b-a3b:fp8'
@@ -412,6 +557,42 @@
         { key: 'staff', label: 'スタッフ' },
         { key: 'workType', label: '作業種別' },
         { key: 'workContent', label: '作業内容' },
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+      ]
+    };
+    const DEPT_DETAIL_COLUMNS = {
+      utilization: [
+        { key: 'workDate', label: '作業日' },
+        { key: 'seiban', label: '製番' },
+        { key: 'client', label: 'クライアント' },
+        { key: 'salesFlag', label: '売上' },
+        { key: 'tokuteiFlag', label: '特定' },
+        { key: 'workType', label: '作業種別' },
+        { key: 'workContent', label: '作業内容' },
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+      ],
+      client: [
+        { key: 'workDate', label: '作業日' },
+        { key: 'staffKey', label: '作業者' },
+        { key: 'seiban', label: '製番' },
+        { key: 'workType', label: '作業種別' },
+        { key: 'workContent', label: '作業内容' },
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+      ],
+      seiban: [
+        { key: 'workDate', label: '作業日' },
+        { key: 'staffKey', label: '作業者' },
+        { key: 'client', label: 'クライアント' },
+        { key: 'workType', label: '作業種別' },
+        { key: 'workContent', label: '作業内容' },
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+      ],
+      monthly: [
+        { key: 'workDate', label: '作業日' },
+        { key: 'staffKey', label: '作業者' },
+        { key: 'seiban', label: '製番' },
+        { key: 'client', label: 'クライアント' },
+        { key: 'workType', label: '作業種別' },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ]
     };
@@ -759,6 +940,484 @@
       return '';
     }
 
+    function parseDateKey(dateStr) {
+      if (!dateStr) return null;
+      const m = String(dateStr).trim().replace(/[／]/g, '/').replace(/[－−—]/g, '-')
+        .match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (!m) return null;
+      return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    }
+
+    function isYesFlag(value) {
+      return String(value || '').trim() === '有';
+    }
+
+    function normalizeSeiban(value) {
+      const v = String(value || '').trim();
+      if (!v || v === '無し' || v === 'なし' || v === '無') return '製番なし';
+      return v;
+    }
+
+    function detectDataMode(text) {
+      const lines = text.split(/\r?\n/);
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) continue;
+        if (/^#期間\s*[:：]/i.test(line)) return 'department';
+        if (/^#製番\s*[\t\u3000]/.test(line) && !/^#製番\s*[:：]/.test(line)) return 'project';
+      }
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line || line.startsWith('#')) continue;
+        const cols = line.split('\t').map(c => c.trim());
+        if (cols.length >= 15 && cols.includes('売上') && cols.includes('特定')) return 'department';
+        if (cols.length >= 8) return 'project';
+      }
+      throw new Error('データ形式を判定できませんでした。製番別または部門・グループ別のWDRテキストファイルか確認してください。');
+    }
+
+    function parseDepartmentMeta(lines) {
+      const meta = { scopeLabel: '', periodStart: '', periodEnd: '', includeNoSeiban: '' };
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line.startsWith('#')) continue;
+        const body = line.slice(1).trim();
+        const periodMatch = body.match(/^期間\s*[:：]\s*(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})\s*[-〜~]\s*(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})/i);
+        if (periodMatch) {
+          meta.periodStart = parseDateKey(periodMatch[1]) || '';
+          meta.periodEnd = parseDateKey(periodMatch[2]) || '';
+          continue;
+        }
+        const seibanOptMatch = body.match(/^製番\s*[:：]\s*(.+)$/i);
+        if (seibanOptMatch) {
+          meta.includeNoSeiban = seibanOptMatch[1].trim();
+          continue;
+        }
+        if (!/^期間/.test(body) && !/^製番\s*[:：]/.test(body) && body) {
+          meta.scopeLabel = body;
+        }
+      }
+      return meta;
+    }
+
+    function parseDepartmentRecord(cols) {
+      if (cols.length < 15) return null;
+      const hours = parseFloat(cols[14]);
+      if (isNaN(hours)) return null;
+
+      const workDate = cols[0];
+      const employeeId = cols[1];
+      const staffName = cols[2];
+      const seiban = normalizeSeiban(cols[3]);
+      const hasSales = isYesFlag(cols[4]);
+      const hasTokutei = isYesFlag(cols[5]);
+      const isProductive = hasSales || hasTokutei;
+      const staffKey = employeeId ? `[${employeeId}] ${staffName}` : staffName;
+
+      return {
+        workDate,
+        employeeId,
+        staffName,
+        staffKey,
+        seiban,
+        seibanRaw: cols[3],
+        hasSales,
+        hasTokutei,
+        isProductive,
+        salesFlag: hasSales ? '有' : '無',
+        tokuteiFlag: hasTokutei ? '有' : '無',
+        client: cols[6] || '',
+        productName: cols[7] || '',
+        parentCategory: cols[8] || '',
+        childCategory: cols[9] || '',
+        workCode: cols[10] || '',
+        fmCode: cols[11] || '',
+        workType: cols[12] || '',
+        workContent: cols[13] || '',
+        hours,
+        isClaim: cols[15] === '1' || cols[15] === '有',
+        uniqueId: cols[16] || '',
+        monthKey: parseMonthKey(workDate)
+      };
+    }
+
+    function filterRecordsByPeriod(records, start, end) {
+      if (!start && !end) return records;
+      return records.filter(r => {
+        const dk = parseDateKey(r.workDate);
+        if (!dk) return false;
+        if (start && dk < start) return false;
+        if (end && dk > end) return false;
+        return true;
+      });
+    }
+
+    function getRecordDateRange(records) {
+      let min = null;
+      let max = null;
+      records.forEach(r => {
+        const dk = parseDateKey(r.workDate);
+        if (!dk) return;
+        if (!min || dk < min) min = dk;
+        if (!max || dk > max) max = dk;
+      });
+      return { min, max };
+    }
+
+    function updateSummaryModeUI() {
+      const badge = document.getElementById('summaryModeBadge');
+      const projectContainer = document.getElementById('projectSummaryContainer');
+      const deptContainer = document.getElementById('departmentSummaryContainer');
+      const deptMetaArea = document.getElementById('departmentMetaArea');
+      const aiHint = document.querySelector('#aiAnalyzeCheck + span .text-xs');
+
+      if (dataMode === 'department') {
+        badge.textContent = '部門・グループ集計';
+        badge.className = 'normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700';
+        projectContainer.classList.add('hidden');
+        deptContainer.classList.remove('hidden');
+        deptMetaArea.classList.remove('hidden');
+        if (aiHint) aiHint.textContent = '個人の稼働率・クライアント・製番の傾向を分析します';
+      } else {
+        badge.textContent = '製番別集計';
+        badge.className = 'normal-case text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700';
+        projectContainer.classList.remove('hidden');
+        deptContainer.classList.add('hidden');
+        deptMetaArea.classList.add('hidden');
+        if (aiHint) aiHint.textContent = '部門名を参照し、各スタッフの担当業務として実際の作業内容を分析します';
+      }
+    }
+
+    function renderDepartmentMetaUI() {
+      document.getElementById('deptScopeLabel').textContent = deptMeta.scopeLabel || '（部門・グループ名なし）';
+      const range = getRecordDateRange(allDeptRecords);
+      const dataPeriodText = range.min && range.max
+        ? `データ期間: ${range.min} 〜 ${range.max}`
+        : 'データ期間: （日付を取得できませんでした）';
+      const extra = deptMeta.includeNoSeiban ? ` / 製番: ${deptMeta.includeNoSeiban}` : '';
+      document.getElementById('deptDataPeriod').textContent = dataPeriodText + extra;
+
+      const startInput = document.getElementById('deptPeriodStart');
+      const endInput = document.getElementById('deptPeriodEnd');
+      startInput.value = deptPeriodFilter.start || range.min || '';
+      endInput.value = deptPeriodFilter.end || range.max || '';
+      if (!deptPeriodFilter.start && range.min) deptPeriodFilter.start = range.min;
+      if (!deptPeriodFilter.end && range.max) deptPeriodFilter.end = range.max;
+    }
+
+    function applyDepartmentPeriodFilter() {
+      deptPeriodFilter.start = document.getElementById('deptPeriodStart').value;
+      deptPeriodFilter.end = document.getElementById('deptPeriodEnd').value;
+      if (deptPeriodFilter.start && deptPeriodFilter.end && deptPeriodFilter.start > deptPeriodFilter.end) {
+        alert('分析期間の開始日は終了日以前にしてください。');
+        return;
+      }
+      renderDepartmentSummary();
+      cachedSummaryText = buildDepartmentSummaryText();
+    }
+
+    function onDeptSearchInput(tabId, value) {
+      clearTimeout(deptSearchTimers[tabId]);
+      deptSearchTimers[tabId] = setTimeout(function() {
+        deptSearchQueries[tabId] = value.trim().toLowerCase();
+        renderDepartmentTab(tabId);
+      }, 200);
+    }
+
+    function filterDeptEntries(tabId, entries) {
+      const q = deptSearchQueries[tabId];
+      if (!q) return entries;
+      return entries.filter(e => e.searchText && e.searchText.toLowerCase().includes(q));
+    }
+
+    function buildDeptUtilizationRowHtml(entry) {
+      return `
+        <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
+            data-mode="department" data-tab="utilization" data-key="${escapeHtml(entry.key)}"
+            onclick="openDetailModal(this)" title="クリックで詳細を表示">
+          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.productiveHours.toFixed(2)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.totalHours.toFixed(2)}</td>
+          <td class="col-rate px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${entry.rate.toFixed(1)}%</td>
+        </tr>`;
+    }
+
+    function buildDeptClientRowHtml(entry) {
+      return `
+        <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
+            data-mode="department" data-tab="client" data-key="${escapeHtml(entry.key)}"
+            onclick="openDetailModal(this)" title="クリックで詳細を表示">
+          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+        </tr>`;
+    }
+
+    function buildDeptSeibanRowHtml(entry) {
+      return `
+        <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
+            data-mode="department" data-tab="seiban" data-key="${escapeHtml(entry.key)}"
+            onclick="openDetailModal(this)" title="クリックで詳細を表示">
+          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-label px-4 py-2.5 text-sm text-slate-600 align-top">${escapeHtml(entry.clientLabel)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+        </tr>`;
+    }
+
+    function buildDeptMonthlyRowHtml(entry) {
+      return `
+        <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
+            data-mode="department" data-tab="monthly" data-key="${escapeHtml(entry.key)}"
+            onclick="openDetailModal(this)" title="クリックで詳細を表示">
+          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${entry.avgRate.toFixed(1)}%</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+        </tr>`;
+    }
+
+    function renderDepartmentTab(tabId) {
+      const entries = filterDeptEntries(tabId, deptSummaryCache[tabId] || []);
+      const body = document.getElementById('deptTableBody-' + tabId);
+      if (!body) return;
+
+      if (entries.length === 0) {
+        const colSpan = tabId === 'utilization' ? 4 : (tabId === 'seiban' ? 4 : 3);
+        body.innerHTML = `<tr><td colspan="${colSpan}" class="px-4 py-6 text-sm text-slate-400 text-center">該当データがありません</td></tr>`;
+      } else {
+        const builders = {
+          utilization: buildDeptUtilizationRowHtml,
+          client: buildDeptClientRowHtml,
+          seiban: buildDeptSeibanRowHtml,
+          monthly: buildDeptMonthlyRowHtml
+        };
+        body.innerHTML = entries.map(builders[tabId]).join('');
+      }
+
+      if (tabId === 'utilization') {
+        renderDeptChart('utilization', entries.map(e => [e.label, e.rate, e.key]), true, '%');
+      } else if (tabId === 'monthly') {
+        renderDeptChart('monthly', entries.map(e => [e.label, e.hours, e.key]), false, 'h');
+      } else {
+        renderDeptChart(tabId, entries.map(e => [e.label, e.hours, e.key]), true, 'h');
+      }
+    }
+
+    function computeDepartmentSummaries(records) {
+      const staffMap = {};
+      const clientMap = {};
+      const seibanMap = {};
+      const monthlyMap = {};
+
+      records.forEach(r => {
+        if (r.staffKey) {
+          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { productive: 0, total: 0 };
+          staffMap[r.staffKey].total += r.hours;
+          if (r.isProductive) staffMap[r.staffKey].productive += r.hours;
+        }
+        if (r.client) {
+          if (!clientMap[r.client]) clientMap[r.client] = { hours: 0, staff: new Set() };
+          clientMap[r.client].hours += r.hours;
+          if (r.staffKey) clientMap[r.client].staff.add(r.staffKey);
+        }
+        if (r.seiban) {
+          if (!seibanMap[r.seiban]) seibanMap[r.seiban] = { hours: 0, staff: new Set(), clients: {} };
+          seibanMap[r.seiban].hours += r.hours;
+          if (r.staffKey) seibanMap[r.seiban].staff.add(r.staffKey);
+          if (r.client) seibanMap[r.seiban].clients[r.client] = (seibanMap[r.seiban].clients[r.client] || 0) + r.hours;
+        }
+        if (r.monthKey) {
+          if (!monthlyMap[r.monthKey]) monthlyMap[r.monthKey] = { hours: 0, productive: 0, total: 0 };
+          monthlyMap[r.monthKey].hours += r.hours;
+          monthlyMap[r.monthKey].total += r.hours;
+          if (r.isProductive) monthlyMap[r.monthKey].productive += r.hours;
+        }
+      });
+
+      const utilization = Object.entries(staffMap).map(([key, val]) => {
+        const rate = val.total > 0 ? (val.productive / val.total) * 100 : 0;
+        return {
+          key,
+          label: key,
+          productiveHours: val.productive,
+          totalHours: val.total,
+          rate,
+          searchText: key
+        };
+      }).sort((a, b) => b.rate - a.rate || b.totalHours - a.totalHours);
+
+      const client = Object.entries(clientMap).map(([key, val]) => ({
+        key,
+        label: key,
+        hours: val.hours,
+        staffCount: val.staff.size,
+        searchText: key
+      })).sort((a, b) => b.hours - a.hours);
+
+      const seiban = Object.entries(seibanMap).map(([key, val]) => {
+        const topClient = Object.entries(val.clients).sort((a, b) => b[1] - a[1])[0];
+        return {
+          key,
+          label: key,
+          clientLabel: topClient ? topClient[0] : '',
+          hours: val.hours,
+          staffCount: val.staff.size,
+          searchText: `${key} ${topClient ? topClient[0] : ''}`
+        };
+      }).sort((a, b) => b.hours - a.hours);
+
+      const monthly = Object.entries(monthlyMap)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([monthKey, val]) => ({
+          key: monthKey,
+          label: formatMonthLabel(monthKey),
+          hours: val.hours,
+          avgRate: val.total > 0 ? (val.productive / val.total) * 100 : 0,
+          searchText: formatMonthLabel(monthKey)
+        }));
+
+      return { utilization, client, seiban, monthly };
+    }
+
+    function renderDepartmentSummary() {
+      destroyDeptSummaryCharts();
+      const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
+      deptSummaryCache = computeDepartmentSummaries(filtered);
+      ['utilization', 'client', 'seiban', 'monthly'].forEach(renderDepartmentTab);
+    }
+
+    function destroyDeptSummaryCharts() {
+      Object.keys(deptSummaryCharts).forEach(function(key) {
+        if (deptSummaryCharts[key]) {
+          deptSummaryCharts[key].destroy();
+          deptSummaryCharts[key] = null;
+        }
+      });
+    }
+
+    function renderDeptChart(tabId, entries, horizontal, unit) {
+      if (deptSummaryCharts[tabId]) {
+        deptSummaryCharts[tabId].destroy();
+        deptSummaryCharts[tabId] = null;
+      }
+
+      const canvas = document.getElementById('deptChart-' + tabId);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const wrap = canvas.parentElement;
+      const chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      if (chartEntries.length === 0) {
+        wrap.classList.add('hidden');
+        return;
+      }
+      wrap.classList.remove('hidden');
+      setSummaryChartHeight(wrap, horizontal, chartEntries.length);
+
+      const fullLabels = chartEntries.map(e => String(e[0]));
+      const values = chartEntries.map(e => e[1]);
+      const colors = chartEntries.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+      const isPercent = unit === '%';
+
+      deptSummaryCharts[tabId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: fullLabels.map(l => truncateChartLabel(l, horizontal ? null : 10)),
+          datasets: [{
+            label: isPercent ? '稼働率 (%)' : '合計 (h)',
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 4,
+            maxBarThickness: horizontal ? 22 : 36
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: horizontal ? 'y' : 'x',
+          layout: { padding: horizontal ? { left: 4, right: 8 } : { top: 4 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0] && items[0].dataIndex;
+                  return fullLabels[idx] || items[0].label;
+                },
+                label: function(ctx) {
+                  const v = ctx.parsed[horizontal ? 'x' : 'y'];
+                  return isPercent ? v.toFixed(1) + '%' : v.toFixed(2) + ' h';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: isPercent && !horizontal ? 100 : undefined,
+              grid: { display: horizontal },
+              ticks: horizontal
+                ? { callback: v => isPercent ? v + '%' : v + 'h' }
+                : { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+            },
+            y: {
+              beginAtZero: true,
+              max: isPercent && horizontal ? 100 : undefined,
+              grid: { display: !horizontal },
+              ticks: horizontal
+                ? { autoSkip: false, font: { size: 11 }, padding: 6, crossAlign: 'far' }
+                : { callback: v => isPercent ? v + '%' : v + 'h' }
+            }
+          }
+        }
+      });
+    }
+
+    function switchDeptSummaryTab(tabId) {
+      document.querySelectorAll('.dept-summary-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('deptPanel-' + tabId).classList.remove('hidden');
+      document.querySelectorAll('.dept-summary-tab').forEach(btn => {
+        const isActive = btn.dataset.deptTab === tabId;
+        btn.classList.toggle('border-indigo-600', isActive);
+        btn.classList.toggle('text-indigo-600', isActive);
+        btn.classList.toggle('border-transparent', !isActive);
+        btn.classList.toggle('text-slate-500', !isActive);
+      });
+      const chart = deptSummaryCharts[tabId];
+      if (chart) chart.resize();
+    }
+
+    function buildDepartmentSummaryText() {
+      const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
+      const sums = computeDepartmentSummaries(filtered);
+      const periodLabel = deptPeriodFilter.start && deptPeriodFilter.end
+        ? `${deptPeriodFilter.start} 〜 ${deptPeriodFilter.end}` : '全期間';
+
+      let text = `【部門・グループ】${deptMeta.scopeLabel || ''}\n`;
+      text += `【分析期間】${periodLabel}\n\n`;
+
+      text += '【個人別・稼働率】\n';
+      sums.utilization.slice(0, AI_SUMMARY_LIMITS.deptStaff).forEach(e => {
+        text += `${e.label}: 稼働 ${e.productiveHours.toFixed(2)}h / 総時間 ${e.totalHours.toFixed(2)}h / 稼働率 ${e.rate.toFixed(1)}%\n`;
+      });
+
+      text += '\n【クライアント別】\n';
+      sums.client.slice(0, AI_SUMMARY_LIMITS.deptClient).forEach(e => {
+        text += `${e.label}: ${e.hours.toFixed(2)}時間（${e.staffCount}名）\n`;
+      });
+
+      text += '\n【製番別】\n';
+      sums.seiban.slice(0, AI_SUMMARY_LIMITS.deptSeiban).forEach(e => {
+        text += `${e.label}: ${e.hours.toFixed(2)}時間（${e.staffCount}名）\n`;
+      });
+
+      text += '\n【月別】\n';
+      sums.monthly.forEach(e => {
+        text += `${e.label}: ${e.hours.toFixed(2)}時間 / 平均稼働率 ${e.avgRate.toFixed(1)}%\n`;
+      });
+
+      return text;
+    }
+
     function buildDetailColgroup(columns) {
       return columns.map(col => {
         if (col.key === 'workDate') return '<col style="width:7rem">';
@@ -821,19 +1480,44 @@
     }
 
     function openDetailModal(row) {
+      const mode = row.dataset.mode || 'project';
       const tab = row.dataset.tab;
       const key = row.dataset.key;
       const label = row.querySelector('.col-label').textContent;
 
-      const records = allRecords.filter(r => {
-        if (tab === 'staff') return r.staffKey === key;
-        if (tab === 'worktype') return r.workType === key;
-        if (tab === 'monthly') return r.monthKey === key;
-        return false;
-      });
+      let records;
+      let columns;
+      let summaryText;
 
-      const columns = DETAIL_COLUMNS[tab];
-      const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+      if (mode === 'department') {
+        const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
+        records = filtered.filter(r => {
+          if (tab === 'utilization') return r.staffKey === key;
+          if (tab === 'client') return r.client === key;
+          if (tab === 'seiban') return r.seiban === key;
+          if (tab === 'monthly') return r.monthKey === key;
+          return false;
+        });
+        columns = DEPT_DETAIL_COLUMNS[tab];
+        const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+        if (tab === 'utilization') {
+          const productive = records.reduce((sum, r) => sum + (r.isProductive ? r.hours : 0), 0);
+          const rate = totalHours > 0 ? (productive / totalHours) * 100 : 0;
+          summaryText = `${records.length}件 / 稼働 ${productive.toFixed(2)}h / 総時間 ${totalHours.toFixed(2)}h / 稼働率 ${rate.toFixed(1)}%`;
+        } else {
+          summaryText = `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
+        }
+      } else {
+        records = allRecords.filter(r => {
+          if (tab === 'staff') return r.staffKey === key;
+          if (tab === 'worktype') return r.workType === key;
+          if (tab === 'monthly') return r.monthKey === key;
+          return false;
+        });
+        columns = DETAIL_COLUMNS[tab];
+        const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+        summaryText = `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
+      }
 
       detailModalState = {
         records,
@@ -843,8 +1527,7 @@
       };
 
       document.getElementById('detailModalTitle').textContent = label;
-      document.getElementById('detailModalSummary').textContent =
-        `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
+      document.getElementById('detailModalSummary').textContent = summaryText;
 
       const colgroup = buildDetailColgroup(columns);
       document.getElementById('detailModalColgroupHead').innerHTML = colgroup;
@@ -932,6 +1615,7 @@
           summaryCharts[key] = null;
         }
       });
+      destroyDeptSummaryCharts();
     }
 
     function truncateChartLabel(label, maxLen) {
@@ -1048,6 +1732,20 @@
     }
 
     function buildAiPrompt() {
+      if (dataMode === 'department') {
+        return '以下は部門・グループ単位の工数データ集計サマリーです（明細行は含まれません）。マネージャー向けに300〜500字程度で総括してください。\n\n' +
+          '【分析方針】\n' +
+          '・個人別の稼働率（売上「有」または特定「有」の時間 ÷ 総作業時間）の高低と偏りを評価してください。\n' +
+          '・クライアントへの集中度（特定クライアントへの工数依存）に触れてください。\n' +
+          '・製番の分散状況（案件の偏り）を確認してください。\n' +
+          '・月別の工数・稼働率トレンドがあれば言及してください。\n\n' +
+          '【記載内容】\n' +
+          '・チーム全体の稼働状況の特徴\n' +
+          '・個人・クライアント・製番の傾向\n' +
+          '・気になる点や今後のアドバイス\n\n' +
+          '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n' +
+          cachedSummaryText;
+      }
       return '以下は工数データの集計サマリーです（明細行は含まれません）。PM向けに300〜500字程度で総括してください。\n\n' +
         '【分析方針】\n' +
         '・各スタッフの部門名を必ず参照し、その部門の担当業務として作業種別を解釈してください（例: 人事総務部のスタッフに開発作業がなければ、開発業務の偏りとして指摘しない）。\n' +
@@ -1238,13 +1936,33 @@
 
     async function buildAggregation(file) {
       destroySummaryCharts();
+      closeDetailModal();
+      allRecords = [];
+      allDeptRecords = [];
+      deptMeta = {};
+      deptPeriodFilter = { start: '', end: '' };
+      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
+      ['utilization', 'client', 'seiban', 'monthly'].forEach(function(id) {
+        const el = document.getElementById('deptSearch-' + id);
+        if (el) el.value = '';
+      });
+
+      const text = await readFileText(file);
+      dataMode = detectDataMode(text);
+      updateSummaryModeUI();
+
+      if (dataMode === 'department') {
+        return buildDepartmentAggregation(text);
+      }
+      return buildProjectAggregation(text);
+    }
+
+    async function buildProjectAggregation(text) {
       document.getElementById('summaryTableBody-staff').innerHTML = '';
       document.getElementById('summaryTableBody-worktype').innerHTML = '';
       document.getElementById('summaryTableBody-monthly').innerHTML = '';
       switchSummaryTab('staff');
-      allRecords = [];
 
-      const text = await readFileText(file);
       const lines = text.split(/\r?\n/);
       const staffSummary = {};
       const staffDeptMap = {};
@@ -1306,6 +2024,37 @@
         formatStaffWorkTypeSection(staffWorkTypeSummary, staffDeptMap, AI_SUMMARY_LIMITS.staff) +
         formatSummarySection('【作業種別の集計結果】', workTypeSummary, sortByHoursDesc, null, AI_SUMMARY_LIMITS.workType) +
         formatSummarySection('【月別の集計結果】', monthlySummary, sortByMonthAsc, formatMonthLabel, AI_SUMMARY_LIMITS.month);
+    }
+
+    async function buildDepartmentAggregation(text) {
+      const lines = text.split(/\r?\n/);
+      deptMeta = parseDepartmentMeta(lines);
+      allDeptRecords = [];
+
+      lines.forEach(line => {
+        line = line.trim();
+        if (line === '' || line.startsWith('#')) return;
+        const cols = line.split('\t').map(col => col.trim());
+        if (cols[0] === '日付' || cols.includes('社員番号')) return;
+        if (cols.length >= 15) {
+          const record = parseDepartmentRecord(cols);
+          if (record) allDeptRecords.push(record);
+        }
+      });
+
+      if (allDeptRecords.length === 0) {
+        throw new Error('部門・グループデータの明細行を読み取れませんでした。ファイル形式を確認してください。');
+      }
+
+      const range = getRecordDateRange(allDeptRecords);
+      deptPeriodFilter.start = deptMeta.periodStart || range.min || '';
+      deptPeriodFilter.end = deptMeta.periodEnd || range.max || '';
+
+      renderDepartmentMetaUI();
+      switchDeptSummaryTab('utilization');
+      renderDepartmentSummary();
+
+      return buildDepartmentSummaryText();
     }
 
     async function runAiAnalysis() {
