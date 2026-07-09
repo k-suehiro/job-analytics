@@ -45,6 +45,15 @@
     .summary-table .col-hours { width: 6.5rem; }
     .summary-table .col-mid { width: 5.5rem; }
     .summary-table .col-rate { width: 5rem; }
+    .summary-table .col-month { width: 4.25rem; min-width: 4.25rem; }
+    .ellipsis-tip {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+      cursor: help;
+    }
     .summary-row { cursor: pointer; }
     .summary-row:hover { background-color: #eff6ff; }
     .ai-result-scroll { padding: 1.25rem; }
@@ -303,10 +312,10 @@
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div class="summary-chart-wrap"><canvas id="deptChart-utilization"></canvas></div>
-            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
-                <tr>
+                <tr id="deptTableHead-utilization">
                   <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働 (h)</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">総時間 (h)</th>
@@ -323,10 +332,10 @@
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div class="summary-chart-wrap"><canvas id="deptChart-client"></canvas></div>
-            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
-                <tr>
+                <tr id="deptTableHead-client">
                   <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
                   <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
@@ -403,7 +412,7 @@
   <!-- 集計行クリック時の詳細モーダル -->
   <div id="detailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50" onclick="closeDetailModal()"></div>
-    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[85vh] flex flex-col">
+    <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
         <h3 id="detailModalTitle" class="text-base font-bold text-slate-800"></h3>
         <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
@@ -517,7 +526,7 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.0.0';
+    const APP_VERSION = '2.1.0';
 
     let dataMode = 'project';
     let allRecords = [];
@@ -527,6 +536,7 @@
     let includeTpTdNonBillable = false;
     let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '' };
     let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [] };
+    let deptAnalysisMonthKeys = [];
     let deptSearchTimers = {};
     let cachedSummaryText = '';
     let detailModalState = { records: [], columns: [], sortKey: 'workDate', sortDir: 'asc' };
@@ -588,26 +598,28 @@
         { key: 'workDate', label: '作業日' },
         { key: 'seiban', label: '製番' },
         { key: 'client', label: 'クライアント' },
-        { key: 'salesFlag', label: '売上' },
-        { key: 'tokuteiFlag', label: '特定' },
-        { key: 'workType', label: '作業種別' },
-        { key: 'workContent', label: '作業内容' },
+        { key: 'productName', label: '品名', ellipsis: true },
+        { key: 'flags', label: '売上/特定', type: 'badges' },
+        { key: 'workType', label: '作業種別', ellipsis: true },
+        { key: 'workContent', label: '作業内容', ellipsis: true },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ],
       client: [
         { key: 'workDate', label: '作業日' },
         { key: 'staffKey', label: '作業者' },
         { key: 'seiban', label: '製番' },
-        { key: 'workType', label: '作業種別' },
-        { key: 'workContent', label: '作業内容' },
+        { key: 'productName', label: '品名', ellipsis: true },
+        { key: 'workType', label: '作業種別', ellipsis: true },
+        { key: 'workContent', label: '作業内容', ellipsis: true },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ],
       seiban: [
         { key: 'workDate', label: '作業日' },
         { key: 'staffKey', label: '作業者' },
         { key: 'client', label: 'クライアント' },
-        { key: 'workType', label: '作業種別' },
-        { key: 'workContent', label: '作業内容' },
+        { key: 'productName', label: '品名', ellipsis: true },
+        { key: 'workType', label: '作業種別', ellipsis: true },
+        { key: 'workContent', label: '作業内容', ellipsis: true },
         { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
       ],
       monthly: [
@@ -896,6 +908,99 @@
       return `${year}年${month}月`;
     }
 
+    function formatMonthColumnLabel(monthKey) {
+      const parts = String(monthKey || '').split('-');
+      if (parts.length < 2) return monthKey;
+      return `${parts[0]}/${parts[1]}`;
+    }
+
+    function getMonthKeysFromRecords(records) {
+      const set = new Set();
+      records.forEach(r => { if (r.monthKey) set.add(r.monthKey); });
+      return Array.from(set).sort();
+    }
+
+    function getVisibleAnalysisMonthKeys(records) {
+      const keys = getMonthKeysFromRecords(records);
+      return keys.length >= 2 ? keys : [];
+    }
+
+    function truncateEllipsis(text, maxLen) {
+      const str = String(text || '');
+      if (str.length <= maxLen) return str;
+      return str.slice(0, Math.max(0, maxLen - 1)) + '…';
+    }
+
+    function formatSalesTokuteiBadges(record) {
+      const salesClass = record.hasSales ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500';
+      const tokuteiClass = record.hasTokutei ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500';
+      return `<span class="inline-flex gap-1 flex-wrap">` +
+        `<span class="text-xs font-medium px-1.5 py-0.5 rounded whitespace-nowrap ${salesClass}">売${escapeHtml(record.salesFlag)}</span>` +
+        `<span class="text-xs font-medium px-1.5 py-0.5 rounded whitespace-nowrap ${tokuteiClass}">特${escapeHtml(record.tokuteiFlag)}</span>` +
+        `</span>`;
+    }
+
+    function formatDetailCellValue(col, record) {
+      if (col.type === 'badges') return formatSalesTokuteiBadges(record);
+      const raw = col.format ? col.format(record[col.key]) : (record[col.key] || '');
+      const text = String(raw);
+      if (col.ellipsis) {
+        const short = truncateEllipsis(text, 18);
+        if (text && text !== short) {
+          return `<span class="ellipsis-tip" title="${escapeHtml(text)}">${escapeHtml(short)}</span>`;
+        }
+      }
+      return escapeHtml(text);
+    }
+
+    function addStaffMonthHours(map, monthKey, hours, record) {
+      if (!map.byMonth[monthKey]) map.byMonth[monthKey] = { standard: 0, tpTd: 0, total: 0 };
+      const m = map.byMonth[monthKey];
+      m.total += hours;
+      if (record.isProductive) {
+        m.standard += hours;
+      } else if (includeTpTdNonBillable && isTpTdNonBillableRecord(record)) {
+        m.tpTd += hours;
+      }
+    }
+
+    function monthUtilizationRate(monthData) {
+      if (!monthData || monthData.total <= 0) return null;
+      return ((monthData.standard + monthData.tpTd) / monthData.total) * 100;
+    }
+
+    function renderDeptUtilizationTableHead(monthKeys) {
+      const row = document.getElementById('deptTableHead-utilization');
+      if (!row) return;
+      let html = '<th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>';
+      monthKeys.forEach(mk => {
+        html += `<th scope="col" class="col-month px-2 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">${escapeHtml(formatMonthColumnLabel(mk))}</th>`;
+      });
+      html += '<th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働 (h)</th>';
+      html += '<th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">総時間 (h)</th>';
+      html += '<th scope="col" class="col-rate px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働率</th>';
+      row.innerHTML = html;
+    }
+
+    function renderDeptClientTableHead(monthKeys) {
+      const row = document.getElementById('deptTableHead-client');
+      if (!row) return;
+      let html = '<th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>';
+      monthKeys.forEach(mk => {
+        html += `<th scope="col" class="col-month px-2 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">${escapeHtml(formatMonthColumnLabel(mk))}</th>`;
+      });
+      html += '<th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>';
+      html += '<th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>';
+      row.innerHTML = html;
+    }
+
+    function deptTableColSpan(tabId, monthKeys) {
+      if (tabId === 'utilization') return 4 + monthKeys.length;
+      if (tabId === 'client') return 3 + monthKeys.length;
+      if (tabId === 'seiban') return 4;
+      return 3;
+    }
+
     function sortByHoursDesc(a, b) {
       return b[1] - a[1];
     }
@@ -1175,24 +1280,38 @@
       return entries.filter(e => e.searchText && e.searchText.toLowerCase().includes(q));
     }
 
-    function buildDeptUtilizationRowHtml(entry) {
+    function buildDeptUtilizationRowHtml(entry, monthKeys) {
+      let monthCells = '';
+      monthKeys.forEach(mk => {
+        const rate = entry.monthRates && entry.monthRates[mk];
+        const text = rate != null ? `${rate.toFixed(1)}%` : '—';
+        monthCells += `<td class="col-month px-2 py-2.5 text-sm text-slate-600 text-right whitespace-nowrap align-top">${text}</td>`;
+      });
       return `
         <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
             data-mode="department" data-tab="utilization" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          ${monthCells}
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.productiveHours.toFixed(2)}</td>
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.totalHours.toFixed(2)}</td>
           <td class="col-rate px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${entry.rate.toFixed(1)}%</td>
         </tr>`;
     }
 
-    function buildDeptClientRowHtml(entry) {
+    function buildDeptClientRowHtml(entry, monthKeys) {
+      let monthCells = '';
+      monthKeys.forEach(mk => {
+        const hours = entry.monthHours && entry.monthHours[mk];
+        const text = hours != null && hours > 0 ? hours.toFixed(2) : '—';
+        monthCells += `<td class="col-month px-2 py-2.5 text-sm text-slate-600 text-right whitespace-nowrap align-top">${text}</td>`;
+      });
       return `
         <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
             data-mode="department" data-tab="client" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          ${monthCells}
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
           <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
         </tr>`;
@@ -1226,16 +1345,19 @@
       const body = document.getElementById('deptTableBody-' + tabId);
       if (!body) return;
 
+      const monthKeys = (tabId === 'utilization' || tabId === 'client') ? deptAnalysisMonthKeys : [];
+      if (tabId === 'utilization') renderDeptUtilizationTableHead(monthKeys);
+      if (tabId === 'client') renderDeptClientTableHead(monthKeys);
+
+      const colSpan = deptTableColSpan(tabId, monthKeys);
       if (entries.length === 0) {
-        const colSpan = tabId === 'utilization' ? 4 : (tabId === 'seiban' ? 4 : 3);
         body.innerHTML = `<tr><td colspan="${colSpan}" class="px-4 py-6 text-sm text-slate-400 text-center">該当データがありません</td></tr>`;
+      } else if (tabId === 'utilization') {
+        body.innerHTML = entries.map(e => buildDeptUtilizationRowHtml(e, monthKeys)).join('');
+      } else if (tabId === 'client') {
+        body.innerHTML = entries.map(e => buildDeptClientRowHtml(e, monthKeys)).join('');
       } else {
-        const builders = {
-          utilization: buildDeptUtilizationRowHtml,
-          client: buildDeptClientRowHtml,
-          seiban: buildDeptSeibanRowHtml,
-          monthly: buildDeptMonthlyRowHtml
-        };
+        const builders = { seiban: buildDeptSeibanRowHtml, monthly: buildDeptMonthlyRowHtml };
         body.innerHTML = entries.map(builders[tabId]).join('');
       }
 
@@ -1244,15 +1366,9 @@
       } else if (tabId === 'monthly') {
         renderDeptChart('monthly', entries.map(e => [e.label, e.hours, e.key]), false, 'h');
       } else if (tabId === 'seiban') {
-        renderDeptChart(
-          'seiban',
-          entries.map(e => [e.label, e.hours, e.key]),
-          true,
-          'h',
-          entries.map(e => isTpTdSeiban(e.key, e.key) ? UTIL_TP_TD_COLOR : null)
-        );
-      } else {
-        renderDeptChart(tabId, entries.map(e => [e.label, e.hours, e.key]), true, 'h');
+        renderDeptStaffBreakdownChart('seiban', entries);
+      } else if (tabId === 'client') {
+        renderDeptStaffBreakdownChart('client', entries);
       }
     }
 
@@ -1264,23 +1380,33 @@
 
       records.forEach(r => {
         if (r.staffKey) {
-          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0 };
+          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0, byMonth: {} };
           staffMap[r.staffKey].total += r.hours;
           if (r.isProductive) {
             staffMap[r.staffKey].standard += r.hours;
           } else if (includeTpTdNonBillable && isTpTdNonBillableRecord(r)) {
             staffMap[r.staffKey].tpTd += r.hours;
           }
+          if (r.monthKey) addStaffMonthHours(staffMap[r.staffKey], r.monthKey, r.hours, r);
         }
         if (r.client) {
-          if (!clientMap[r.client]) clientMap[r.client] = { hours: 0, staff: new Set() };
+          if (!clientMap[r.client]) clientMap[r.client] = { hours: 0, staff: new Set(), staffHours: {}, byMonth: {} };
           clientMap[r.client].hours += r.hours;
-          if (r.staffKey) clientMap[r.client].staff.add(r.staffKey);
+          if (r.staffKey) {
+            clientMap[r.client].staff.add(r.staffKey);
+            clientMap[r.client].staffHours[r.staffKey] = (clientMap[r.client].staffHours[r.staffKey] || 0) + r.hours;
+          }
+          if (r.monthKey) {
+            clientMap[r.client].byMonth[r.monthKey] = (clientMap[r.client].byMonth[r.monthKey] || 0) + r.hours;
+          }
         }
         if (r.seiban) {
-          if (!seibanMap[r.seiban]) seibanMap[r.seiban] = { hours: 0, staff: new Set(), clients: {} };
+          if (!seibanMap[r.seiban]) seibanMap[r.seiban] = { hours: 0, staff: new Set(), staffHours: {}, clients: {} };
           seibanMap[r.seiban].hours += r.hours;
-          if (r.staffKey) seibanMap[r.seiban].staff.add(r.staffKey);
+          if (r.staffKey) {
+            seibanMap[r.seiban].staff.add(r.staffKey);
+            seibanMap[r.seiban].staffHours[r.staffKey] = (seibanMap[r.seiban].staffHours[r.staffKey] || 0) + r.hours;
+          }
           if (r.client) seibanMap[r.seiban].clients[r.client] = (seibanMap[r.seiban].clients[r.client] || 0) + r.hours;
         }
         if (r.monthKey) {
@@ -1296,6 +1422,11 @@
         const rate = val.total > 0 ? (productiveHours / val.total) * 100 : 0;
         const standardRate = val.total > 0 ? (val.standard / val.total) * 100 : 0;
         const tpTdRate = val.total > 0 ? (val.tpTd / val.total) * 100 : 0;
+        const monthRates = {};
+        Object.entries(val.byMonth || {}).forEach(([mk, md]) => {
+          const mr = monthUtilizationRate(md);
+          if (mr != null) monthRates[mk] = mr;
+        });
         return {
           key,
           label: key,
@@ -1306,6 +1437,7 @@
           rate,
           standardRate,
           tpTdRate,
+          monthRates,
           searchText: key
         };
       }).sort((a, b) => b.rate - a.rate || b.totalHours - a.totalHours);
@@ -1315,6 +1447,8 @@
         label: key,
         hours: val.hours,
         staffCount: val.staff.size,
+        staffHours: val.staffHours,
+        monthHours: val.byMonth,
         searchText: key
       })).sort((a, b) => b.hours - a.hours);
 
@@ -1326,6 +1460,7 @@
           clientLabel: topClient ? topClient[0] : '',
           hours: val.hours,
           staffCount: val.staff.size,
+          staffHours: val.staffHours,
           searchText: `${key} ${topClient ? topClient[0] : ''}`
         };
       }).sort((a, b) => b.hours - a.hours);
@@ -1346,6 +1481,7 @@
     function renderDepartmentSummary() {
       destroyDeptSummaryCharts();
       const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
+      deptAnalysisMonthKeys = getVisibleAnalysisMonthKeys(filtered);
       deptSummaryCache = computeDepartmentSummaries(filtered);
       ['utilization', 'client', 'seiban', 'monthly'].forEach(renderDepartmentTab);
     }
@@ -1448,6 +1584,119 @@
               grid: { display: true },
               ticks: { autoSkip: false, font: { size: 11 }, padding: 6, crossAlign: 'far' }
             }
+          }
+        }
+      });
+    }
+
+    function buildStaffBreakdownChartData(entries) {
+      const staffTotals = {};
+      entries.forEach(e => {
+        Object.entries(e.staffHours || {}).forEach(([staff, hours]) => {
+          staffTotals[staff] = (staffTotals[staff] || 0) + hours;
+        });
+      });
+      const topStaff = Object.entries(staffTotals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([staff]) => staff);
+
+      const datasets = topStaff.map((staff, i) => ({
+        label: staff,
+        staffKey: staff,
+        data: entries.map(e => (e.staffHours && e.staffHours[staff]) || 0),
+        backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+        borderRadius: 2,
+        maxBarThickness: 22
+      }));
+
+      datasets.push({
+        label: 'その他',
+        staffKey: '__other__',
+        data: entries.map(e => {
+          let other = 0;
+          Object.entries(e.staffHours || {}).forEach(([staff, hours]) => {
+            if (!topStaff.includes(staff)) other += hours;
+          });
+          return other;
+        }),
+        backgroundColor: '#94a3b8',
+        borderRadius: 2,
+        maxBarThickness: 22
+      });
+
+      return { datasets, topStaff };
+    }
+
+    function renderDeptStaffBreakdownChart(tabId, entries) {
+      if (deptSummaryCharts[tabId]) {
+        deptSummaryCharts[tabId].destroy();
+        deptSummaryCharts[tabId] = null;
+      }
+
+      const canvas = document.getElementById('deptChart-' + tabId);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const wrap = canvas.parentElement;
+      const chartEntries = entries.slice(0, SUMMARY_CHART_LIMIT);
+      if (chartEntries.length === 0) {
+        wrap.classList.add('hidden');
+        return;
+      }
+
+      const hasStaffSplit = chartEntries.some(e => e.staffCount > 1);
+      if (!hasStaffSplit) {
+        const customColors = tabId === 'seiban'
+          ? chartEntries.map(e => isTpTdSeiban(e.key, e.key) ? UTIL_TP_TD_COLOR : null)
+          : null;
+        renderDeptChart(tabId, chartEntries.map(e => [e.label, e.hours, e.key]), true, 'h', customColors);
+        return;
+      }
+
+      wrap.classList.remove('hidden');
+      setSummaryChartHeight(wrap, true, chartEntries.length);
+
+      const fullLabels = chartEntries.map(e => String(e.label));
+      const { datasets } = buildStaffBreakdownChartData(chartEntries);
+      const activeDatasets = datasets.filter(ds => ds.data.some(v => v > 0));
+
+      deptSummaryCharts[tabId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: fullLabels.map(l => truncateChartLabel(l, null)),
+          datasets: activeDatasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          layout: { padding: { left: 4, right: 8 } },
+          plugins: {
+            legend: {
+              display: activeDatasets.length > 1,
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 10, font: { size: 10 } }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0] && items[0].dataIndex;
+                  return fullLabels[idx] || items[0].label;
+                },
+                label: function(ctx) {
+                  const hours = ctx.parsed.x;
+                  if (!hours || hours <= 0) return null;
+                  const entry = chartEntries[ctx.dataIndex];
+                  const total = entry.hours || 0;
+                  const pct = total > 0 ? (hours / total) * 100 : 0;
+                  return `${ctx.dataset.label}: ${hours.toFixed(2)}h (${pct.toFixed(1)}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { stacked: true, beginAtZero: true, grid: { display: false }, ticks: { callback: v => v + 'h' } },
+            y: { stacked: true, beginAtZero: true, grid: { display: true }, ticks: { autoSkip: false, font: { size: 11 }, padding: 6, crossAlign: 'far' } }
           }
         }
       });
@@ -1581,19 +1830,25 @@
 
     function buildDetailColgroup(columns) {
       return columns.map(col => {
-        if (col.key === 'workDate') return '<col style="width:7rem">';
-        if (col.key === 'hours') return '<col style="width:6rem">';
-        if (col.key === 'workContent') return '<col>';
-        return '<col style="width:8rem">';
+        if (col.key === 'workDate') return '<col style="width:6.5rem">';
+        if (col.key === 'hours') return '<col style="width:5.5rem">';
+        if (col.key === 'flags') return '<col style="width:5.5rem">';
+        if (col.key === 'productName' || col.key === 'workContent' || col.key === 'workType') return '<col style="width:9rem">';
+        if (col.key === 'seiban' || col.key === 'client') return '<col style="width:7rem">';
+        return '<col style="width:6.5rem">';
       }).join('');
     }
 
     function sortDetailRecords(records, sortKey, sortDir) {
       return [...records].sort((a, b) => {
-        const va = a[sortKey] ?? '';
-        const vb = b[sortKey] ?? '';
+        let va = a[sortKey] ?? '';
+        let vb = b[sortKey] ?? '';
+        if (sortKey === 'flags') {
+          va = (a.hasSales ? 2 : 0) + (a.hasTokutei ? 1 : 0);
+          vb = (b.hasSales ? 2 : 0) + (b.hasTokutei ? 1 : 0);
+        }
         let cmp;
-        if (sortKey === 'hours') {
+        if (sortKey === 'hours' || sortKey === 'flags') {
           cmp = va - vb;
         } else {
           cmp = String(va).localeCompare(String(vb), 'ja');
@@ -1610,11 +1865,12 @@
         const isActive = col.key === sortKey;
         const alignClass = col.align === 'right' ? ' text-right' : '';
         const sortMark = isActive ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+        const sortable = col.type !== 'badges';
         return `
           <th scope="col"
-              class="col-wrap px-3 py-2 text-left text-xs font-medium uppercase tracking-wider border-b border-slate-200${alignClass}${isActive ? ' sort-active' : ' text-slate-500'}"
-              onclick="onDetailHeaderClick('${col.key}')"
-              title="クリックで並び替え">${col.label}${sortMark}</th>
+              class="col-wrap px-3 py-2 text-left text-xs font-medium uppercase tracking-wider border-b border-slate-200${alignClass}${isActive ? ' sort-active' : ' text-slate-500'}${sortable ? '' : ' cursor-default'}"
+              ${sortable ? `onclick="onDetailHeaderClick('${col.key}')"` : ''}
+              title="${sortable ? 'クリックで並び替え' : ''}">${col.label}${sortMark}</th>
         `;
       }).join('');
 
@@ -1623,8 +1879,8 @@
         : sorted.map(r => `
           <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
             ${columns.map(col => {
-              const val = col.format ? col.format(r[col.key]) : (r[col.key] || '');
-              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}">${escapeHtml(String(val))}</td>`;
+              const cellHtml = formatDetailCellValue(col, r);
+              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}">${cellHtml}</td>`;
             }).join('')}
           </tr>
         `).join('');
@@ -2102,6 +2358,7 @@
       allDeptRecords = [];
       deptMeta = {};
       deptPeriodFilter = { start: '', end: '' };
+      deptAnalysisMonthKeys = [];
       includeTpTdNonBillable = false;
       const tpTdCheck = document.getElementById('includeTpTdNonBillable');
       if (tpTdCheck) tpTdCheck.checked = false;
