@@ -594,8 +594,14 @@
   </div>
 
   <script>
-    const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.10';
+    function decodeBase64Utf8(base64) {
+      const binary = atob(base64 || '');
+      const bytes = Uint8Array.from(binary, function(ch) { return ch.charCodeAt(0); });
+      return new TextDecoder('utf-8').decode(bytes);
+    }
+
+    const GAS_INIT = JSON.parse(decodeBase64Utf8('<?= gasInitBase64 ?>') || '{}');
+    const APP_VERSION = '2.2.11';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
     const RELEASE_NOTES_SEEN_KEY = 'wdrViewer_releaseNotesSeen';
     const RELEASE_NOTES = {
