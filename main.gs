@@ -1,6 +1,7 @@
 /**
  * Webアプリとして公開するエントリポイント。
  * デプロイ: 拡張機能 → Webアプリ → 種類「ウェブアプリ」→ デプロイ
+ * @version 2.0.0
  */
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
