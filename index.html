@@ -40,19 +40,43 @@
       padding: 0.125rem 0.375rem;
       border-radius: 0.25rem;
     }
-    .summary-table { table-layout: fixed; width: 100%; }
+    .summary-table { table-layout: auto; width: 100%; }
     .summary-table .col-label { word-break: break-word; overflow-wrap: anywhere; }
-    .summary-table .col-hours { width: 6.5rem; }
-    .summary-table .col-mid { width: 5.5rem; }
-    .summary-table .col-rate { width: 5rem; }
-    .summary-table .col-month { width: 4.25rem; min-width: 4.25rem; }
-    .ellipsis-tip {
-      display: block;
+    .summary-table .col-staff {
+      width: 5.5rem;
+      min-width: 5.5rem;
+      max-width: 7rem;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .summary-table .col-client-wide {
+      min-width: 11rem;
+      width: 30%;
+    }
+    .summary-table .col-hours { width: 6.5rem; }
+    .summary-table .col-mid { width: 5.5rem; }
+    .summary-table .col-rate { width: 4rem; min-width: 4rem; }
+    .summary-table .col-month { width: 3.25rem; min-width: 3.25rem; white-space: nowrap; }
+    .detail-cell-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.35;
+      max-height: calc(1.35em * 2);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .detail-table tbody td {
+      height: 2.7rem;
+      max-height: 2.7rem;
+      vertical-align: top;
+    }
+    .detail-table tbody td.td-nowrap {
+      height: auto;
+      max-height: none;
       white-space: nowrap;
-      max-width: 100%;
-      cursor: help;
     }
     .summary-row { cursor: pointer; }
     .summary-row:hover { background-color: #eff6ff; }
@@ -79,8 +103,8 @@
           <span id="headerVersionLabel" class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded"></span>
           <span id="headerProviderLabel" class="text-sm font-normal text-blue-100">(GB10)</span>
         </h2>
-        <button type="button" onclick="openSettingsModal()" title="AI設定（デバッグ）"
-          class="shrink-0 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
+        <button type="button" id="aiSettingsBtn" onclick="openSettingsModal()" title="AI設定"
+          class="hidden shrink-0 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         </button>
       </div>
@@ -307,16 +331,16 @@
             </button>
           </div>
           <div id="deptPanel-utilization" class="dept-summary-panel">
+            <div class="summary-chart-wrap"><canvas id="deptChart-utilization"></canvas></div>
             <div class="px-4 py-2 border-b border-slate-100 bg-white">
               <input type="search" id="deptSearch-utilization" placeholder="作業者名で絞り込み…" oninput="onDeptSearchInput('utilization', this.value)"
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
-            <div class="summary-chart-wrap"><canvas id="deptChart-utilization"></canvas></div>
             <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr id="deptTableHead-utilization">
-                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>
+                  <th scope="col" class="col-staff px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働 (h)</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">総時間 (h)</th>
                   <th scope="col" class="col-rate px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">稼働率</th>
@@ -327,16 +351,16 @@
             </div>
           </div>
           <div id="deptPanel-client" class="dept-summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="deptChart-client"></canvas></div>
             <div class="px-4 py-2 border-b border-slate-100 bg-white">
               <input type="search" id="deptSearch-client" placeholder="クライアント名で絞り込み…" oninput="onDeptSearchInput('client', this.value)"
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
-            <div class="summary-chart-wrap"><canvas id="deptChart-client"></canvas></div>
             <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr id="deptTableHead-client">
-                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
+                  <th scope="col" class="col-client-wide px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
                   <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
                 </tr>
@@ -346,17 +370,18 @@
             </div>
           </div>
           <div id="deptPanel-seiban" class="dept-summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="deptChart-seiban"></canvas></div>
             <div class="px-4 py-2 border-b border-slate-100 bg-white">
               <input type="search" id="deptSearch-seiban" placeholder="製番・クライアントで絞り込み…" oninput="onDeptSearchInput('seiban', this.value)"
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
-            <div class="summary-chart-wrap"><canvas id="deptChart-seiban"></canvas></div>
-            <div class="max-h-64 overflow-y-auto overflow-x-hidden">
+            <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
                 <tr>
                   <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">製番</th>
                   <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">品名</th>
                   <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
                   <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
                 </tr>
@@ -366,11 +391,11 @@
             </div>
           </div>
           <div id="deptPanel-monthly" class="dept-summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="deptChart-monthly"></canvas></div>
             <div class="px-4 py-2 border-b border-slate-100 bg-white">
               <input type="search" id="deptSearch-monthly" placeholder="年月で絞り込み…" oninput="onDeptSearchInput('monthly', this.value)"
                 class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
-            <div class="summary-chart-wrap"><canvas id="deptChart-monthly"></canvas></div>
             <div class="max-h-64 overflow-y-auto overflow-x-hidden">
             <table class="summary-table divide-y divide-slate-200">
               <thead class="bg-slate-50 sticky top-0">
@@ -441,12 +466,12 @@
     </div>
   </div>
 
-  <!-- AI設定モーダル（デバッグ・比較用） -->
+  <!-- AI設定モーダル（管理者のみ） -->
   <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50" onclick="closeSettingsModal()"></div>
     <div class="relative bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl sticky top-0">
-        <h3 class="text-base font-bold text-slate-800">AI設定（デバッグ）</h3>
+        <h3 class="text-base font-bold text-slate-800">AI設定</h3>
         <button type="button" onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
@@ -516,7 +541,7 @@
           <input id="settingMaxTokens" type="number" min="256" max="4096" step="128" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
         </div>
 
-        <p class="text-xs text-slate-400">設定はブラウザの localStorage に保存されます（デバッグ・比較用）。</p>
+        <p id="settingsStorageNote" class="text-xs text-slate-400">設定はサーバーに保存され、全員に共通で適用されます。</p>
 
         <button type="button" onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
           設定を保存
@@ -526,7 +551,7 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.1.0';
+    const APP_VERSION = '2.1.2';
 
     let dataMode = 'project';
     let allRecords = [];
@@ -539,7 +564,9 @@
     let deptAnalysisMonthKeys = [];
     let deptSearchTimers = {};
     let cachedSummaryText = '';
-    let detailModalState = { records: [], columns: [], sortKey: 'workDate', sortDir: 'asc' };
+    let isAiSettingsAdminUser = false;
+    let sharedAiSettingsFromServer = null;
+    let aiSettingsReady = false;
     let summaryCharts = { staff: null, worktype: null, monthly: null };
     let deptSummaryCharts = { utilization: null, client: null, seiban: null, monthly: null };
     const SUMMARY_CHART_LIMIT = 12;
@@ -575,14 +602,14 @@
         { key: 'department', label: '部門' },
         { key: 'workType', label: '作業種別' },
         { key: 'workContent', label: '作業内容' },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ],
       worktype: [
         { key: 'workDate', label: '作業日' },
         { key: 'location', label: '拠点' },
         { key: 'staff', label: 'スタッフ' },
         { key: 'workContent', label: '作業内容' },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ],
       monthly: [
         { key: 'workDate', label: '作業日' },
@@ -590,7 +617,7 @@
         { key: 'staff', label: 'スタッフ' },
         { key: 'workType', label: '作業種別' },
         { key: 'workContent', label: '作業内容' },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ]
     };
     const DEPT_DETAIL_COLUMNS = {
@@ -602,7 +629,7 @@
         { key: 'flags', label: '売上/特定', type: 'badges' },
         { key: 'workType', label: '作業種別', ellipsis: true },
         { key: 'workContent', label: '作業内容', ellipsis: true },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ],
       client: [
         { key: 'workDate', label: '作業日' },
@@ -611,7 +638,7 @@
         { key: 'productName', label: '品名', ellipsis: true },
         { key: 'workType', label: '作業種別', ellipsis: true },
         { key: 'workContent', label: '作業内容', ellipsis: true },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ],
       seiban: [
         { key: 'workDate', label: '作業日' },
@@ -620,7 +647,7 @@
         { key: 'productName', label: '品名', ellipsis: true },
         { key: 'workType', label: '作業種別', ellipsis: true },
         { key: 'workContent', label: '作業内容', ellipsis: true },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ],
       monthly: [
         { key: 'workDate', label: '作業日' },
@@ -628,7 +655,7 @@
         { key: 'seiban', label: '製番' },
         { key: 'client', label: 'クライアント' },
         { key: 'workType', label: '作業種別' },
-        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => v.toFixed(2) }
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
       ]
     };
     const PROVIDER_LABELS = { gb10: 'GB10', gemini: 'Gemini', lmstudio: 'LM Studio' };
@@ -668,10 +695,63 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('headerVersionLabel').textContent = 'v' + APP_VERSION;
-      loadSettingsToForm();
-      updateHeaderProviderLabel();
+      initAiSettings();
       initDropZone();
     });
+
+    function normalizeAiSettings(saved) {
+      var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved || {});
+      merged.geminiModel = normalizeGeminiModel(merged.geminiModel);
+      merged.gb10Url = normalizeOpenAiCompatUrl(merged.gb10Url);
+      merged.gb10Model = normalizeGb10Model(merged.gb10Model);
+      if (merged.lmStudioApiKey === 'lm-studio') merged.lmStudioApiKey = '';
+      return merged;
+    }
+
+    function initAiSettings() {
+      if (!isGasEnvironment()) {
+        aiSettingsReady = true;
+        loadSettingsToForm();
+        updateHeaderProviderLabel();
+        updateSettingsStorageNote();
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(adminStatus) {
+          isAiSettingsAdminUser = !!(adminStatus && adminStatus.isAdmin);
+          var btn = document.getElementById('aiSettingsBtn');
+          if (btn) btn.classList.toggle('hidden', !isAiSettingsAdminUser);
+        })
+        .withFailureHandler(function() {
+          isAiSettingsAdminUser = false;
+        })
+        .checkAiSettingsAdmin();
+
+      google.script.run
+        .withSuccessHandler(function(settings) {
+          if (settings) sharedAiSettingsFromServer = settings;
+          aiSettingsReady = true;
+          loadSettingsToForm();
+          updateHeaderProviderLabel();
+          updateSettingsStorageNote();
+        })
+        .withFailureHandler(function() {
+          aiSettingsReady = true;
+          loadSettingsToForm();
+          updateHeaderProviderLabel();
+          updateSettingsStorageNote();
+        })
+        .getSharedAiSettings();
+    }
+
+    function updateSettingsStorageNote() {
+      var note = document.getElementById('settingsStorageNote');
+      if (!note) return;
+      note.textContent = isGasEnvironment()
+        ? '設定はサーバーに保存され、全員に共通で適用されます。'
+        : '設定はこのブラウザの localStorage にのみ保存されます。';
+    }
 
     function normalizeOpenAiCompatUrl(url) {
       var u = String(url || '').trim().replace(/\/+$/, '');
@@ -766,16 +846,14 @@
     }
 
     function getAiSettings() {
+      if (isGasEnvironment()) {
+        return normalizeAiSettings(sharedAiSettingsFromServer);
+      }
       try {
         var saved = JSON.parse(localStorage.getItem('aiSettings') || '{}');
-        var merged = Object.assign({}, DEFAULT_AI_SETTINGS, saved);
-        merged.geminiModel = normalizeGeminiModel(merged.geminiModel);
-        merged.gb10Url = normalizeOpenAiCompatUrl(merged.gb10Url);
-        merged.gb10Model = normalizeGb10Model(merged.gb10Model);
-        if (merged.lmStudioApiKey === 'lm-studio') merged.lmStudioApiKey = '';
-        return merged;
+        return normalizeAiSettings(saved);
       } catch (_) {
-        return Object.assign({}, DEFAULT_AI_SETTINGS);
+        return normalizeAiSettings({});
       }
     }
 
@@ -786,6 +864,8 @@
     }
 
     function openSettingsModal() {
+      if (isGasEnvironment() && !isAiSettingsAdminUser) return;
+      if (!aiSettingsReady) return;
       loadSettingsToForm();
       document.getElementById('settingsModal').classList.remove('hidden');
     }
@@ -829,6 +909,25 @@
         lmStudioApiKey: document.getElementById('settingLmStudioApiKey').value.trim(),
         maxTokens: parseInt(document.getElementById('settingMaxTokens').value, 10) || 800
       };
+
+      if (isGasEnvironment()) {
+        if (!isAiSettingsAdminUser) {
+          alert('AI設定の変更権限がありません');
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(function() {
+            sharedAiSettingsFromServer = settings;
+            updateHeaderProviderLabel();
+            closeSettingsModal();
+          })
+          .withFailureHandler(function(err) {
+            alert(typeof err === 'string' ? err : (err.message || String(err)));
+          })
+          .saveSharedAiSettings(JSON.stringify(settings));
+        return;
+      }
+
       localStorage.setItem('aiSettings', JSON.stringify(settings));
       updateHeaderProviderLabel();
       closeSettingsModal();
@@ -911,7 +1010,32 @@
     function formatMonthColumnLabel(monthKey) {
       const parts = String(monthKey || '').split('-');
       if (parts.length < 2) return monthKey;
-      return `${parts[0]}/${parts[1]}`;
+      const yy = parts[0].slice(-2);
+      return `${yy}/${parts[1]}`;
+    }
+
+    function formatHours(h) {
+      if (h == null || isNaN(h)) return '';
+      const cents = Math.round(h * 100);
+      const whole = Math.floor(cents / 100);
+      const frac = cents % 100;
+      if (frac === 0) return String(whole);
+      if (frac === 50) return whole + '.5';
+      if (frac === 25) return whole + '.25';
+      if (frac === 75) return whole + '.75';
+      return whole + '.' + String(frac).padStart(2, '0');
+    }
+
+    function formatRateDisplay(rate) {
+      if (rate == null || isNaN(rate)) return '—';
+      const rounded = Math.round(rate * 10) / 10;
+      if (Math.abs(rounded - Math.round(rounded)) < 0.05) return String(Math.round(rounded));
+      return rounded.toFixed(1);
+    }
+
+    function extractStaffNameFromKey(staffKey) {
+      const m = String(staffKey || '').match(/^\[\d+\]\s*(.+)$/);
+      return m ? m[1] : staffKey;
     }
 
     function getMonthKeysFromRecords(records) {
@@ -942,15 +1066,18 @@
 
     function formatDetailCellValue(col, record) {
       if (col.type === 'badges') return formatSalesTokuteiBadges(record);
-      const raw = col.format ? col.format(record[col.key]) : (record[col.key] || '');
-      const text = String(raw);
-      if (col.ellipsis) {
-        const short = truncateEllipsis(text, 18);
-        if (text && text !== short) {
-          return `<span class="ellipsis-tip" title="${escapeHtml(text)}">${escapeHtml(short)}</span>`;
-        }
+      let raw;
+      if (col.key === 'staffKey') {
+        raw = record.staffName || extractStaffNameFromKey(record.staffKey);
+      } else {
+        raw = col.format ? col.format(record[col.key]) : (record[col.key] || '');
       }
-      return escapeHtml(text);
+      const text = String(raw);
+      if (col.key === 'hours' || col.key === 'workDate' || col.key === 'seiban') {
+        return escapeHtml(text);
+      }
+      if (!text) return '';
+      return `<span class="detail-cell-clamp" title="${escapeHtml(text)}">${escapeHtml(text)}</span>`;
     }
 
     function addStaffMonthHours(map, monthKey, hours, record) {
@@ -972,7 +1099,7 @@
     function renderDeptUtilizationTableHead(monthKeys) {
       const row = document.getElementById('deptTableHead-utilization');
       if (!row) return;
-      let html = '<th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>';
+      let html = '<th scope="col" class="col-staff px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">作業者</th>';
       monthKeys.forEach(mk => {
         html += `<th scope="col" class="col-month px-2 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">${escapeHtml(formatMonthColumnLabel(mk))}</th>`;
       });
@@ -985,7 +1112,7 @@
     function renderDeptClientTableHead(monthKeys) {
       const row = document.getElementById('deptTableHead-client');
       if (!row) return;
-      let html = '<th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>';
+      let html = '<th scope="col" class="col-client-wide px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">クライアント</th>';
       monthKeys.forEach(mk => {
         html += `<th scope="col" class="col-month px-2 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">${escapeHtml(formatMonthColumnLabel(mk))}</th>`;
       });
@@ -997,7 +1124,7 @@
     function deptTableColSpan(tabId, monthKeys) {
       if (tabId === 'utilization') return 4 + monthKeys.length;
       if (tabId === 'client') return 3 + monthKeys.length;
-      if (tabId === 'seiban') return 4;
+      if (tabId === 'seiban') return 5;
       return 3;
     }
 
@@ -1020,7 +1147,7 @@
             data-tab="${tabId}" data-key="${escapeHtml(key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(label)}</td>
-          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${val.toFixed(2)}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(val)}</td>
         </tr>
       `;
       }).join('');
@@ -1284,18 +1411,19 @@
       let monthCells = '';
       monthKeys.forEach(mk => {
         const rate = entry.monthRates && entry.monthRates[mk];
-        const text = rate != null ? `${rate.toFixed(1)}%` : '—';
+        const text = rate != null ? formatRateDisplay(rate) : '—';
         monthCells += `<td class="col-month px-2 py-2.5 text-sm text-slate-600 text-right whitespace-nowrap align-top">${text}</td>`;
       });
+      const displayName = entry.label;
       return `
         <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
             data-mode="department" data-tab="utilization" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
-          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-staff px-4 py-2.5 text-sm text-slate-700 font-medium align-top" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</td>
           ${monthCells}
-          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.productiveHours.toFixed(2)}</td>
-          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.totalHours.toFixed(2)}</td>
-          <td class="col-rate px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${entry.rate.toFixed(1)}%</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${formatHours(entry.productiveHours)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${formatHours(entry.totalHours)}</td>
+          <td class="col-rate px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${formatRateDisplay(entry.rate)}</td>
         </tr>`;
     }
 
@@ -1303,29 +1431,31 @@
       let monthCells = '';
       monthKeys.forEach(mk => {
         const hours = entry.monthHours && entry.monthHours[mk];
-        const text = hours != null && hours > 0 ? hours.toFixed(2) : '—';
+        const text = hours != null && hours > 0 ? formatHours(hours) : '—';
         monthCells += `<td class="col-month px-2 py-2.5 text-sm text-slate-600 text-right whitespace-nowrap align-top">${text}</td>`;
       });
       return `
         <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
             data-mode="department" data-tab="client" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
-          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
+          <td class="col-client-wide px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
           ${monthCells}
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
-          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(entry.hours)}</td>
         </tr>`;
     }
 
     function buildDeptSeibanRowHtml(entry) {
+      const productLabel = entry.productLabel || '';
       return `
         <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
             data-mode="department" data-tab="seiban" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
           <td class="col-label px-4 py-2.5 text-sm text-slate-600 align-top">${escapeHtml(entry.clientLabel)}</td>
+          <td class="col-label px-4 py-2.5 text-sm text-slate-600 align-top" title="${escapeHtml(productLabel)}">${escapeHtml(truncateEllipsis(productLabel, 24))}</td>
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
-          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(entry.hours)}</td>
         </tr>`;
     }
 
@@ -1335,8 +1465,8 @@
             data-mode="department" data-tab="monthly" data-key="${escapeHtml(entry.key)}"
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
-          <td class="col-mid px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${entry.avgRate.toFixed(1)}%</td>
-          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${entry.hours.toFixed(2)}</td>
+          <td class="col-mid px-4 py-2.5 text-sm font-semibold text-indigo-700 text-right whitespace-nowrap align-top">${formatRateDisplay(entry.avgRate)}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(entry.hours)}</td>
         </tr>`;
     }
 
@@ -1380,7 +1510,8 @@
 
       records.forEach(r => {
         if (r.staffKey) {
-          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0, byMonth: {} };
+          if (!staffMap[r.staffKey]) staffMap[r.staffKey] = { standard: 0, tpTd: 0, total: 0, byMonth: {}, staffName: r.staffName || '' };
+          if (r.staffName) staffMap[r.staffKey].staffName = r.staffName;
           staffMap[r.staffKey].total += r.hours;
           if (r.isProductive) {
             staffMap[r.staffKey].standard += r.hours;
@@ -1401,13 +1532,16 @@
           }
         }
         if (r.seiban) {
-          if (!seibanMap[r.seiban]) seibanMap[r.seiban] = { hours: 0, staff: new Set(), staffHours: {}, clients: {} };
+          if (!seibanMap[r.seiban]) seibanMap[r.seiban] = { hours: 0, staff: new Set(), staffHours: {}, clients: {}, products: {} };
           seibanMap[r.seiban].hours += r.hours;
           if (r.staffKey) {
             seibanMap[r.seiban].staff.add(r.staffKey);
             seibanMap[r.seiban].staffHours[r.staffKey] = (seibanMap[r.seiban].staffHours[r.staffKey] || 0) + r.hours;
           }
           if (r.client) seibanMap[r.seiban].clients[r.client] = (seibanMap[r.seiban].clients[r.client] || 0) + r.hours;
+          if (r.productName) {
+            seibanMap[r.seiban].products[r.productName] = (seibanMap[r.seiban].products[r.productName] || 0) + r.hours;
+          }
         }
         if (r.monthKey) {
           if (!monthlyMap[r.monthKey]) monthlyMap[r.monthKey] = { hours: 0, productive: 0, total: 0 };
@@ -1427,9 +1561,10 @@
           const mr = monthUtilizationRate(md);
           if (mr != null) monthRates[mk] = mr;
         });
+        const displayName = val.staffName || extractStaffNameFromKey(key);
         return {
           key,
-          label: key,
+          label: displayName,
           productiveHours,
           standardHours: val.standard,
           tpTdHours: val.tpTd,
@@ -1438,7 +1573,7 @@
           standardRate,
           tpTdRate,
           monthRates,
-          searchText: key
+          searchText: displayName
         };
       }).sort((a, b) => b.rate - a.rate || b.totalHours - a.totalHours);
 
@@ -1454,14 +1589,17 @@
 
       const seiban = Object.entries(seibanMap).map(([key, val]) => {
         const topClient = Object.entries(val.clients).sort((a, b) => b[1] - a[1])[0];
+        const topProduct = Object.entries(val.products || {}).sort((a, b) => b[1] - a[1])[0];
+        const productLabel = topProduct ? topProduct[0] : '';
         return {
           key,
           label: key,
           clientLabel: topClient ? topClient[0] : '',
+          productLabel,
           hours: val.hours,
           staffCount: val.staff.size,
           staffHours: val.staffHours,
-          searchText: `${key} ${topClient ? topClient[0] : ''}`
+          searchText: `${key} ${topClient ? topClient[0] : ''} ${productLabel}`
         };
       }).sort((a, b) => b.hours - a.hours);
 
@@ -1558,10 +1696,10 @@
                 label: function(ctx) {
                   const entry = chartEntries[ctx.dataIndex];
                   if (ctx.datasetIndex === 0) {
-                    return `売上/特定あり: ${entry.standardRate.toFixed(1)}% (${entry.standardHours.toFixed(2)}h)`;
+                    return `売上/特定あり: ${formatRateDisplay(entry.standardRate)} (${formatHours(entry.standardHours)}h)`;
                   }
                   if (entry.tpTdRate <= 0) return null;
-                  return `TP/TD（売上無・特定無）: ${entry.tpTdRate.toFixed(1)}% (${entry.tpTdHours.toFixed(2)}h)`;
+                  return `TP/TD（売上無・特定無）: ${formatRateDisplay(entry.tpTdRate)} (${formatHours(entry.tpTdHours)}h)`;
                 },
                 footer: function(items) {
                   const entry = chartEntries[items[0].dataIndex];
@@ -1689,7 +1827,7 @@
                   const entry = chartEntries[ctx.dataIndex];
                   const total = entry.hours || 0;
                   const pct = total > 0 ? (hours / total) * 100 : 0;
-                  return `${ctx.dataset.label}: ${hours.toFixed(2)}h (${pct.toFixed(1)}%)`;
+                  return `${ctx.dataset.label}: ${formatHours(hours)}h (${formatRateDisplay(pct)})`;
                 }
               }
             }
@@ -1754,7 +1892,7 @@
                 },
                 label: function(ctx) {
                   const v = ctx.parsed[horizontal ? 'x' : 'y'];
-                  return isPercent ? v.toFixed(1) + '%' : v.toFixed(2) + ' h';
+                  return isPercent ? formatRateDisplay(v) : formatHours(v) + ' h';
                 }
               }
             }
@@ -1807,22 +1945,22 @@
 
       text += '【個人別・稼働率】\n';
       sums.utilization.slice(0, AI_SUMMARY_LIMITS.deptStaff).forEach(e => {
-        text += `${e.label}: 稼働 ${e.productiveHours.toFixed(2)}h / 総時間 ${e.totalHours.toFixed(2)}h / 稼働率 ${e.rate.toFixed(1)}%\n`;
+        text += `${e.label}: 稼働 ${formatHours(e.productiveHours)}h / 総時間 ${formatHours(e.totalHours)}h / 稼働率 ${formatRateDisplay(e.rate)}\n`;
       });
 
       text += '\n【クライアント別】\n';
       sums.client.slice(0, AI_SUMMARY_LIMITS.deptClient).forEach(e => {
-        text += `${e.label}: ${e.hours.toFixed(2)}時間（${e.staffCount}名）\n`;
+        text += `${e.label}: ${formatHours(e.hours)}時間（${e.staffCount}名）\n`;
       });
 
       text += '\n【製番別】\n';
       sums.seiban.slice(0, AI_SUMMARY_LIMITS.deptSeiban).forEach(e => {
-        text += `${e.label}: ${e.hours.toFixed(2)}時間（${e.staffCount}名）\n`;
+        text += `${e.label}: ${formatHours(e.hours)}時間（${e.staffCount}名）\n`;
       });
 
       text += '\n【月別】\n';
       sums.monthly.forEach(e => {
-        text += `${e.label}: ${e.hours.toFixed(2)}時間 / 平均稼働率 ${e.avgRate.toFixed(1)}%\n`;
+        text += `${e.label}: ${formatHours(e.hours)}時間 / 平均稼働率 ${formatRateDisplay(e.avgRate)}\n`;
       });
 
       return text;
@@ -1830,11 +1968,12 @@
 
     function buildDetailColgroup(columns) {
       return columns.map(col => {
-        if (col.key === 'workDate') return '<col style="width:6.5rem">';
+        if (col.key === 'workDate') return '<col style="width:6.25rem">';
+        if (col.key === 'seiban') return '<col style="width:5rem">';
         if (col.key === 'hours') return '<col style="width:5.5rem">';
         if (col.key === 'flags') return '<col style="width:5.5rem">';
         if (col.key === 'productName' || col.key === 'workContent' || col.key === 'workType') return '<col style="width:9rem">';
-        if (col.key === 'seiban' || col.key === 'client') return '<col style="width:7rem">';
+        if (col.key === 'client') return '<col style="width:7rem">';
         return '<col style="width:6.5rem">';
       }).join('');
     }
@@ -1880,7 +2019,9 @@
           <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
             ${columns.map(col => {
               const cellHtml = formatDetailCellValue(col, r);
-              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}">${cellHtml}</td>`;
+              const nowrapKeys = ['workDate', 'hours', 'seiban'];
+              const nowrapClass = (nowrapKeys.includes(col.key) || col.type === 'badges') ? ' td-nowrap' : '';
+              return `<td class="col-wrap px-3 py-2 text-sm text-slate-700 align-top${col.align === 'right' ? ' text-right whitespace-nowrap' : ''}${nowrapClass}">${cellHtml}</td>`;
             }).join('')}
           </tr>
         `).join('');
@@ -1900,7 +2041,8 @@
       const mode = row.dataset.mode || 'project';
       const tab = row.dataset.tab;
       const key = row.dataset.key;
-      const label = row.querySelector('.col-label').textContent;
+      const labelCell = row.querySelector('.col-staff, .col-client-wide, .col-label');
+      const label = labelCell ? labelCell.textContent : '';
 
       let records;
       let columns;
@@ -1920,9 +2062,9 @@
         if (tab === 'utilization') {
           const productive = records.reduce((sum, r) => sum + (isUtilizationProductive(r) ? r.hours : 0), 0);
           const rate = totalHours > 0 ? (productive / totalHours) * 100 : 0;
-          summaryText = `${records.length}件 / 稼働 ${productive.toFixed(2)}h / 総時間 ${totalHours.toFixed(2)}h / 稼働率 ${rate.toFixed(1)}%`;
+          summaryText = `${records.length}件 / 稼働 ${formatHours(productive)}h / 総時間 ${formatHours(totalHours)}h / 稼働率 ${formatRateDisplay(rate)}`;
         } else {
-          summaryText = `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
+          summaryText = `${records.length}件 / 合計 ${formatHours(totalHours)} 時間`;
         }
       } else {
         records = allRecords.filter(r => {
@@ -1933,7 +2075,7 @@
         });
         columns = DETAIL_COLUMNS[tab];
         const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
-        summaryText = `${records.length}件 / 合計 ${totalHours.toFixed(2)} 時間`;
+        summaryText = `${records.length}件 / 合計 ${formatHours(totalHours)} 時間`;
       }
 
       detailModalState = {
@@ -2105,7 +2247,7 @@
                   var idx = items[0] && items[0].dataIndex;
                   return fullLabels[idx] || items[0].label;
                 },
-                label: function(ctx) { return ctx.parsed[horizontal ? 'x' : 'y'].toFixed(2) + ' h'; }
+                label: function(ctx) { return formatHours(ctx.parsed[horizontal ? 'x' : 'y']) + ' h'; }
               }
             }
           },
@@ -2269,7 +2411,7 @@
       const maxTokens = s.maxTokens || 800;
 
       if (s.provider === 'gemini') {
-        if (!s.geminiApiKey) throw new Error('Gemini API Key を設定してください（設定メニュー）');
+        if (!s.geminiApiKey) throw new Error('Gemini API Key が設定されていません。管理者に設定を依頼してください。');
         var geminiModel = resolveGeminiModel(s.geminiModel);
         return callGemini(s.geminiApiKey, geminiModel, prompt, maxTokens);
       }

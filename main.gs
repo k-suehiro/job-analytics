@@ -1,8 +1,68 @@
 /**
  * Webアプリとして公開するエントリポイント。
  * デプロイ: 拡張機能 → Webアプリ → 種類「ウェブアプリ」→ デプロイ
- * @version 2.1.0
+ * @version 2.1.2
  */
+
+var SHARED_AI_SETTINGS_KEY = 'SHARED_AI_SETTINGS';
+var AI_SETTINGS_ADMIN_EMAILS_KEY = 'AI_SETTINGS_ADMIN_EMAILS';
+
+function getAiSettingsAdminEmails() {
+  var props = PropertiesService.getScriptProperties();
+  var stored = props.getProperty(AI_SETTINGS_ADMIN_EMAILS_KEY);
+  if (stored) {
+    try {
+      var list = JSON.parse(stored);
+      if (Array.isArray(list) && list.length) return list;
+    } catch (e) { /* fall through */ }
+  }
+  var owner = Session.getEffectiveUser().getEmail();
+  return owner ? [owner] : [];
+}
+
+function isAiSettingsAdmin() {
+  var email = String(Session.getActiveUser().getEmail() || '').toLowerCase();
+  if (!email) return false;
+  return getAiSettingsAdminEmails().some(function(adminEmail) {
+    return String(adminEmail || '').toLowerCase() === email;
+  });
+}
+
+/** クライアント初期化用: 設定ボタン表示可否 */
+function checkAiSettingsAdmin() {
+  return {
+    isAdmin: isAiSettingsAdmin(),
+    email: Session.getActiveUser().getEmail() || ''
+  };
+}
+
+/** 全ユーザー共通の AI 設定を取得 */
+function getSharedAiSettings() {
+  var raw = PropertiesService.getScriptProperties().getProperty(SHARED_AI_SETTINGS_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+/** 管理者のみ: 全ユーザー共通の AI 設定を保存 */
+function saveSharedAiSettings(settingsJson) {
+  if (!isAiSettingsAdmin()) {
+    throw new Error('AI設定の変更権限がありません');
+  }
+  var settings = typeof settingsJson === 'string' ? JSON.parse(settingsJson) : settingsJson;
+  if (!settings || typeof settings !== 'object') {
+    throw new Error('設定データが不正です');
+  }
+  PropertiesService.getScriptProperties().setProperty(
+    SHARED_AI_SETTINGS_KEY,
+    JSON.stringify(settings)
+  );
+  return true;
+}
+
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('AI工数アナライザー')
