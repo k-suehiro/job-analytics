@@ -601,7 +601,7 @@
     }
 
     const GAS_INIT = JSON.parse(decodeBase64Utf8('<?= gasInitBase64 ?>') || '{}');
-    const APP_VERSION = '2.2.12';
+    const APP_VERSION = '2.2.13';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let projectColMap = null;
@@ -1925,7 +1925,7 @@
                 <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
                 <span class="truncate text-slate-700">${escapeHtml(pair[0])}</span>
               </span>
-              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}</span>
+              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}%</span>
             </li>`;
         }).join('');
         return `
@@ -2003,7 +2003,7 @@
                 <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
                 <span class="truncate text-slate-700">${escapeHtml(pair[0])}</span>
               </span>
-              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}</span>
+              <span class="text-slate-500 whitespace-nowrap">${formatHours(pair[1])}h / ${formatRateDisplay(rate)}%</span>
             </li>`;
         }).join('');
         return `
