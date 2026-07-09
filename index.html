@@ -560,10 +560,10 @@
 
   <script>
     const GAS_INIT = <?!= gasInitJson ?>;
-    const APP_VERSION = '2.2.2';
+    const APP_VERSION = '2.2.3';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
-    let dataMode = 'project';
+    let projectColMap = null;
     let allRecords = [];
     let allDeptRecords = [];
     let deptMeta = {};
@@ -1257,31 +1257,80 @@
       }).join('');
     }
 
+    function normalizeHeaderCell(cell) {
+      return String(cell || '').trim().replace(/^#/, '');
+    }
+
+    function findProjectColumnIndex(cols, names) {
+      for (let i = 0; i < cols.length; i++) {
+        if (names.includes(normalizeHeaderCell(cols[i]))) return i;
+      }
+      return -1;
+    }
+
+    function isProjectHeaderRow(cols) {
+      const normalized = cols.map(normalizeHeaderCell);
+      return normalized.includes('作業内容') && normalized.includes('作業時間');
+    }
+
+    function parseProjectColumnMap(lines) {
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line || (line.startsWith('#') && !line.includes('\t'))) continue;
+        const cols = line.split('\t').map(c => c.trim());
+        if (!isProjectHeaderRow(cols)) continue;
+        const workContent = findProjectColumnIndex(cols, ['作業内容']);
+        const hours = findProjectColumnIndex(cols, ['作業時間']);
+        if (workContent < 0 || hours < 0) continue;
+        return {
+          workDate: Math.max(findProjectColumnIndex(cols, ['日付']), 0),
+          location: Math.max(findProjectColumnIndex(cols, ['事業所']), 1),
+          department: Math.max(findProjectColumnIndex(cols, ['部署']), 2),
+          staff: Math.max(findProjectColumnIndex(cols, ['スタッフ']), 3),
+          workType: Math.max(findProjectColumnIndex(cols, ['作業種別']), 4),
+          workContent,
+          hours
+        };
+      }
+      // WDR 既定（役務単価列あり: 作業内容=6, 作業時間=7）
+      return { workDate: 0, location: 1, department: 2, staff: 3, workType: 4, workContent: 6, hours: 7 };
+    }
+
     function extractDepartment(cols) {
-      if (!cols[2]) return '';
-      const value = String(cols[2]).trim();
-      if (!value || parseMonthKey(value)) return '';
+      const m = projectColMap || { department: 2 };
+      if (!cols[m.department]) return '';
+      const value = String(cols[m.department]).trim();
+      if (!value || value === '-----' || parseMonthKey(value)) return '';
       return value;
     }
 
-    /** TSV 6列目（index 5）から作業内容を取得（日付形式の列は除外） */
+    /** 製番別TSVの作業内容列を取得（役務単価列を誤って読まない） */
     function extractWorkContent(cols) {
-      if (!cols[5]) return '';
-      const value = String(cols[5]).trim();
+      const m = projectColMap || { workContent: 6 };
+      const idx = cols.length > m.workContent ? m.workContent : 5;
+      if (!cols[idx]) return '';
+      const value = String(cols[idx]).trim();
       if (!value || parseMonthKey(value)) return '';
       return value;
     }
 
     function parseRecord(cols) {
-      const location = cols[1];
+      const m = projectColMap || { workDate: 0, location: 1, department: 2, staff: 3, workType: 4, workContent: 6, hours: 7 };
+      const location = cols[m.location];
       const department = extractDepartment(cols);
-      const staff = cols[3];
-      const workType = cols[4];
+      const staff = cols[m.staff];
+      const workType = cols[m.workType];
       const workContent = extractWorkContent(cols);
-      const hours = parseFloat(cols[7]);
+      const hoursIdx = cols.length > m.hours ? m.hours : 7;
+      const hours = parseFloat(cols[hoursIdx]);
       if (isNaN(hours)) return null;
 
-      const workDate = extractWorkDate(cols);
+      let workDate = '';
+      if (cols[m.workDate] && parseMonthKey(cols[m.workDate])) {
+        workDate = cols[m.workDate];
+      } else {
+        workDate = extractWorkDate(cols);
+      }
       const monthKey = extractMonthKey(cols);
       const staffKey = staff ? `${location} - ${staff}` : '';
 
@@ -2672,6 +2721,7 @@
       switchSummaryTab('staff');
 
       const lines = text.split(/\r?\n/);
+      projectColMap = parseProjectColumnMap(lines);
       const staffSummary = {};
       const staffDeptMap = {};
       const staffWorkTypeSummary = {};
@@ -2682,6 +2732,7 @@
         line = line.trim();
         if (line === '' || line.startsWith('#')) return;
         const cols = line.split('\t').map(col => col.trim());
+        if (isProjectHeaderRow(cols)) return;
         if (cols.length >= 8) {
           const record = parseRecord(cols);
           if (!record) return;
