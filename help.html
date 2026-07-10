@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="gas-service-url" content="<?= serviceUrl ?>">
+  <meta name="gas-service-url" content="<?!= serviceUrl ?>">
   <title>WDR工数ビューア - ヘルプ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -35,7 +35,7 @@
         <h1 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2 flex-wrap">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span>WDR工数ビューア ヘルプ</span>
-          <span class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded">v2.2.16</span>
+          <span class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded">v2.2.15</span>
         </h1>
         <p class="text-sm text-blue-100 mt-1 hidden sm:block">使い方ガイド・画面の見方・よくある質問</p>
       </div>
@@ -442,7 +442,7 @@
         </section>
 
         <footer class="text-center text-xs text-slate-400 pb-8 pt-2">
-          WDR工数ビューア v2.2.16
+          WDR工数ビューア v2.2.15
         </footer>
       </main>
     </div>
@@ -454,7 +454,7 @@
       if (!back) return;
       var meta = document.querySelector('meta[name="gas-service-url"]');
       var serviceUrl = meta ? String(meta.getAttribute('content') || '').trim() : '';
-      if (!serviceUrl || serviceUrl.indexOf('<?') >= 0) return;
+      if (!serviceUrl || !/^https?:\/\//i.test(serviceUrl)) return;
       var u = new URL(serviceUrl);
       u.searchParams.delete('page');
       var ak = new URLSearchParams(window.location.search).get('ak');

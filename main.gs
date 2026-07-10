@@ -1,7 +1,7 @@
 /**
  * Webアプリとして公開するエントリポイント。
  * デプロイ: 拡張機能 → Webアプリ → 種類「ウェブアプリ」→ デプロイ
- * @version 2.2.16
+ * @version 2.2.15
  */
 
 var SHARED_AI_SETTINGS_KEY = 'SHARED_AI_SETTINGS';
