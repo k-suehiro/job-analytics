@@ -116,7 +116,7 @@ GB10 利用時は **HTML を HTTP で配信** することを推奨します（M
 
 ## 使い方
 
-エンドユーザー向けの詳細ガイドは **[help.html](help.html)**（アプリ画面上部の「ヘルプ」リンクからも開けます）を参照してください。
+エンドユーザー向けの詳細ガイドは **[help.html](help.html)**（アプリ画面上部の「ヘルプ」リンク、GAS では `?page=help`）を参照してください。技術仕様は **[design.html](design.html)**（「仕様書」リンク、GAS では `?page=design`）を参照してください。
 
 ### 基本フロー
 
@@ -276,7 +276,7 @@ npm run build:design
 
 - **入力**: `README.md` + `design.template.html`（枠組み）
 - **出力**: `design.html`（社内共有・レビュー用）
-- **Clasp push 対象外**: `README.md` / `design.html` / `design.template.html` は GAS にアップロードされません
+- **Clasp push 対象**: `index.html` / `help.html` / `design.html` / `main.gs` / `appsscript.json` のみ（`README.md` / `design.template.html` は含まない）
 
 ### 更新の反映
 
@@ -310,6 +310,7 @@ npm run build:design
 - ヘルプの用語集に GB10（社内 AI 推論基盤）の説明を追加
 - GAS 環境でヘルプリンクが遷移しない問題を修正（配信 URL をサーバーから注入、`?page=help` + `target="_top"`）
 - GAS テンプレート処理でヘルプページが SyntaxError になる問題を修正
+- アプリ・ヘルプから仕様書（`design.html`）へリンク（GAS では `?page=design`）
 
 ### v2.2.14
 

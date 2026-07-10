@@ -39,11 +39,15 @@
         </h1>
         <p class="text-sm text-blue-100 mt-1 hidden sm:block">使い方ガイド・画面の見方・よくある質問</p>
       </div>
-      <a id="backToAppLink" href="index.html" target="_top"
-        class="shrink-0 text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-1.5">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        <span class="whitespace-nowrap">アプリに戻る</span>
-      </a>
+      <div class="flex items-center gap-2 shrink-0">
+        <a id="designPageLink" href="design.html" target="_top"
+          class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-2 rounded-lg hover:bg-white/10 transition whitespace-nowrap">仕様書</a>
+        <a id="backToAppLink" href="index.html" target="_top"
+          class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <span class="whitespace-nowrap">アプリに戻る</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -450,17 +454,29 @@
 
   <script>
     (function initHelpLinks() {
-      var back = document.getElementById('backToAppLink');
-      if (!back) return;
       var meta = document.querySelector('meta[name="gas-service-url"]');
       var serviceUrl = meta ? String(meta.getAttribute('content') || '').trim() : '';
       if (!serviceUrl || !/^https?:\/\//i.test(serviceUrl)) return;
-      var u = new URL(serviceUrl);
-      u.searchParams.delete('page');
-      var ak = new URLSearchParams(window.location.search).get('ak');
-      if (ak) u.searchParams.set('ak', ak);
-      back.href = u.toString();
-      back.target = '_top';
+
+      function buildUrl(page) {
+        var u = new URL(serviceUrl);
+        if (page) u.searchParams.set('page', page);
+        else u.searchParams.delete('page');
+        var ak = new URLSearchParams(window.location.search).get('ak');
+        if (ak) u.searchParams.set('ak', ak);
+        return u.toString();
+      }
+
+      var back = document.getElementById('backToAppLink');
+      var design = document.getElementById('designPageLink');
+      if (back) {
+        back.href = buildUrl('');
+        back.target = '_top';
+      }
+      if (design) {
+        design.href = buildUrl('design');
+        design.target = '_top';
+      }
     })();
   </script>
 </body>

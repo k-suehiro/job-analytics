@@ -137,6 +137,24 @@ function getAiSettingsAdminAccessUrl() {
   return url + sep + 'ak=' + encodeURIComponent(key);
 }
 
+function escapeHtmlAttr(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderDesignPage() {
+  var html = HtmlService.createHtmlOutputFromFile('design').getContent();
+  var serviceUrl = getGasServiceUrl();
+  html = html.replace(
+    'content="__GAS_SERVICE_URL__"',
+    'content="' + escapeHtmlAttr(serviceUrl) + '"'
+  );
+  return HtmlService.createHtmlOutput(html)
+    .setTitle('WDR工数ビューア - 仕様書')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
 function doGet(e) {
   var page = e && e.parameter ? String(e.parameter.page || '') : '';
   if (page === 'help') {
@@ -145,6 +163,9 @@ function doGet(e) {
     return helpTemplate.evaluate()
       .setTitle('WDR工数ビューア - ヘルプ')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  if (page === 'design') {
+    return renderDesignPage();
   }
 
   var accessKey = e && e.parameter ? String(e.parameter.ak || '') : '';

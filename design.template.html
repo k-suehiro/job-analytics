@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="gas-service-url" content="__GAS_SERVICE_URL__">
   <title>WDR工数ビューア - 仕様書</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -52,8 +53,8 @@
         <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · {{GENERATED_AT}}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <a href="help.html" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">ヘルプ</a>
-        <a href="index.html" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">アプリ</a>
+        <a id="helpPageLink" href="help.html" target="_top" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">ヘルプ</a>
+        <a id="appPageLink" href="index.html" target="_top" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">アプリ</a>
       </div>
     </div>
   </header>
@@ -82,5 +83,27 @@
       Generated from README.md · WDR工数ビューア {{VERSION}}
     </footer>
   </div>
+
+  <script>
+    (function initDesignGasLinks() {
+      var meta = document.querySelector('meta[name="gas-service-url"]');
+      var serviceUrl = meta ? String(meta.getAttribute('content') || '').trim() : '';
+      if (!serviceUrl || serviceUrl === '__GAS_SERVICE_URL__' || !/^https?:\/\//i.test(serviceUrl)) return;
+
+      function buildUrl(page) {
+        var u = new URL(serviceUrl);
+        if (page) u.searchParams.set('page', page);
+        else u.searchParams.delete('page');
+        var ak = new URLSearchParams(window.location.search).get('ak');
+        if (ak) u.searchParams.set('ak', ak);
+        return u.toString();
+      }
+
+      var app = document.getElementById('appPageLink');
+      var help = document.getElementById('helpPageLink');
+      if (app) { app.href = buildUrl(''); app.target = '_top'; }
+      if (help) { help.href = buildUrl('help'); help.target = '_top'; }
+    })();
+  </script>
 </body>
 </html>
