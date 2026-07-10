@@ -45,7 +45,7 @@ function buildTocHtml() {
   return headings.map(h => {
     const indent = h.depth === 3 ? 'pl-3' : '';
     const cls = h.depth === 2 ? 'font-medium text-slate-700' : 'text-slate-500';
-    return `<li class="${indent}"><a href="#${h.id}" class="hover:text-indigo-600 transition ${cls}">${escapeHtml(h.text)}</a></li>`;
+    return `<li class="${indent}"><a href="#${h.id}" class="toc-link hover:text-indigo-600 transition ${cls}">${escapeHtml(h.text)}</a></li>`;
   }).join('\n            ');
 }
 

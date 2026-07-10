@@ -15,6 +15,20 @@
     .design-nav a { scroll-margin-top: 5rem; }
     .doc-content { scroll-margin-top: 5rem; }
     .doc-content > *:first-child { margin-top: 0; }
+    .toc-link {
+      display: block;
+      padding: 0.2rem 0.5rem;
+      margin: 0 -0.5rem;
+      border-radius: 0.375rem;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .toc-link.toc-active {
+      color: #4f46e5;
+      font-weight: 600;
+      background: #eef2ff;
+      border-left-color: #6366f1;
+    }
 
     .doc-content h1 { font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
     .doc-content h2 { font-size: 1.35rem; font-weight: 700; color: #1e293b; margin: 2.5rem 0 0.75rem; padding-bottom: 0.35rem; border-bottom: 1px solid #e2e8f0; }
@@ -50,7 +64,7 @@
           <span>WDR工数ビューア 仕様書</span>
           <span class="text-xs font-normal text-slate-300 bg-white/10 px-2 py-0.5 rounded">v2.2.15</span>
         </h1>
-        <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · 2026-07-10 18:53</p>
+        <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · 2026-07-10 18:57</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <a id="helpPageLink" href="help.html" target="_top" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">ヘルプ</a>
@@ -69,55 +83,55 @@
         <div class="sticky top-24 bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-sm max-h-[calc(100vh-7rem)] overflow-y-auto">
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">目次</p>
           <ul class="space-y-1.5 text-slate-600">
-            <li class=""><a href="#主な機能" class="hover:text-indigo-600 transition font-medium text-slate-700">主な機能</a></li>
-            <li class="pl-3"><a href="#共通" class="hover:text-indigo-600 transition text-slate-500">共通</a></li>
-            <li class="pl-3"><a href="#製番別集計" class="hover:text-indigo-600 transition text-slate-500">製番別集計</a></li>
-            <li class="pl-3"><a href="#部門・グループ別集計v200-新規" class="hover:text-indigo-600 transition text-slate-500">部門・グループ別集計（v2.0.0 新規）</a></li>
-            <li class=""><a href="#リポジトリ構成" class="hover:text-indigo-600 transition font-medium text-slate-700">リポジトリ構成</a></li>
-            <li class=""><a href="#前提条件" class="hover:text-indigo-600 transition font-medium text-slate-700">前提条件</a></li>
-            <li class=""><a href="#セットアップ" class="hover:text-indigo-600 transition font-medium text-slate-700">セットアップ</a></li>
-            <li class="pl-3"><a href="#clasp-でデプロイgas" class="hover:text-indigo-600 transition text-slate-500">Clasp でデプロイ（GAS）</a></li>
-            <li class="pl-3"><a href="#オンプレミス-web-サーバー" class="hover:text-indigo-600 transition text-slate-500">オンプレミス Web サーバー</a></li>
-            <li class=""><a href="#使い方" class="hover:text-indigo-600 transition font-medium text-slate-700">使い方</a></li>
-            <li class="pl-3"><a href="#基本フロー" class="hover:text-indigo-600 transition text-slate-500">基本フロー</a></li>
-            <li class="pl-3"><a href="#データの取得方法" class="hover:text-indigo-600 transition text-slate-500">データの取得方法</a></li>
-            <li class="pl-3"><a href="#一覧の月別列" class="hover:text-indigo-600 transition text-slate-500">一覧の月別列</a></li>
-            <li class="pl-3"><a href="#部門モードの稼働率" class="hover:text-indigo-600 transition text-slate-500">部門モードの稼働率</a></li>
-            <li class=""><a href="#入力データ形式" class="hover:text-indigo-600 transition font-medium text-slate-700">入力データ形式</a></li>
-            <li class="pl-3"><a href="#製番別" class="hover:text-indigo-600 transition text-slate-500">製番別</a></li>
-            <li class="pl-3"><a href="#部門・グループ別" class="hover:text-indigo-600 transition text-slate-500">部門・グループ別</a></li>
-            <li class="pl-3"><a href="#共通-1" class="hover:text-indigo-600 transition text-slate-500">共通</a></li>
-            <li class=""><a href="#ai-分析について" class="hover:text-indigo-600 transition font-medium text-slate-700">AI 分析について</a></li>
-            <li class=""><a href="#開発メモ" class="hover:text-indigo-600 transition font-medium text-slate-700">開発メモ</a></li>
-            <li class="pl-3"><a href="#仕様書designhtmlの生成" class="hover:text-indigo-600 transition text-slate-500">仕様書（design.html）の生成</a></li>
-            <li class="pl-3"><a href="#更新の反映" class="hover:text-indigo-600 transition text-slate-500">更新の反映</a></li>
-            <li class="pl-3"><a href="#外部-cdn" class="hover:text-indigo-600 transition text-slate-500">外部 CDN</a></li>
-            <li class=""><a href="#トラブルシューティング" class="hover:text-indigo-600 transition font-medium text-slate-700">トラブルシューティング</a></li>
-            <li class=""><a href="#バージョン履歴" class="hover:text-indigo-600 transition font-medium text-slate-700">バージョン履歴</a></li>
-            <li class="pl-3"><a href="#v2215" class="hover:text-indigo-600 transition text-slate-500">v2.2.15</a></li>
-            <li class="pl-3"><a href="#v2214" class="hover:text-indigo-600 transition text-slate-500">v2.2.14</a></li>
-            <li class="pl-3"><a href="#v2213" class="hover:text-indigo-600 transition text-slate-500">v2.2.13</a></li>
-            <li class="pl-3"><a href="#v2212" class="hover:text-indigo-600 transition text-slate-500">v2.2.12</a></li>
-            <li class="pl-3"><a href="#v2211" class="hover:text-indigo-600 transition text-slate-500">v2.2.11</a></li>
-            <li class="pl-3"><a href="#v2210" class="hover:text-indigo-600 transition text-slate-500">v2.2.10</a></li>
-            <li class="pl-3"><a href="#v229" class="hover:text-indigo-600 transition text-slate-500">v2.2.9</a></li>
-            <li class="pl-3"><a href="#v228" class="hover:text-indigo-600 transition text-slate-500">v2.2.8</a></li>
-            <li class="pl-3"><a href="#v227" class="hover:text-indigo-600 transition text-slate-500">v2.2.7</a></li>
-            <li class="pl-3"><a href="#v226" class="hover:text-indigo-600 transition text-slate-500">v2.2.6</a></li>
-            <li class="pl-3"><a href="#v225" class="hover:text-indigo-600 transition text-slate-500">v2.2.5</a></li>
-            <li class="pl-3"><a href="#v224" class="hover:text-indigo-600 transition text-slate-500">v2.2.4</a></li>
-            <li class="pl-3"><a href="#v223" class="hover:text-indigo-600 transition text-slate-500">v2.2.3</a></li>
-            <li class="pl-3"><a href="#v222" class="hover:text-indigo-600 transition text-slate-500">v2.2.2</a></li>
-            <li class="pl-3"><a href="#v221" class="hover:text-indigo-600 transition text-slate-500">v2.2.1</a></li>
-            <li class="pl-3"><a href="#v220" class="hover:text-indigo-600 transition text-slate-500">v2.2.0</a></li>
-            <li class="pl-3"><a href="#v213" class="hover:text-indigo-600 transition text-slate-500">v2.1.3</a></li>
-            <li class="pl-3"><a href="#v212" class="hover:text-indigo-600 transition text-slate-500">v2.1.2</a></li>
-            <li class="pl-3"><a href="#v211" class="hover:text-indigo-600 transition text-slate-500">v2.1.1</a></li>
-            <li class="pl-3"><a href="#v210" class="hover:text-indigo-600 transition text-slate-500">v2.1.0</a></li>
-            <li class="pl-3"><a href="#v200" class="hover:text-indigo-600 transition text-slate-500">v2.0.0</a></li>
-            <li class="pl-3"><a href="#v110" class="hover:text-indigo-600 transition text-slate-500">v1.1.0</a></li>
-            <li class="pl-3"><a href="#v100" class="hover:text-indigo-600 transition text-slate-500">v1.0.0</a></li>
-            <li class=""><a href="#ライセンス" class="hover:text-indigo-600 transition font-medium text-slate-700">ライセンス</a></li>
+            <li class=""><a href="#主な機能" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">主な機能</a></li>
+            <li class="pl-3"><a href="#共通" class="toc-link hover:text-indigo-600 transition text-slate-500">共通</a></li>
+            <li class="pl-3"><a href="#製番別集計" class="toc-link hover:text-indigo-600 transition text-slate-500">製番別集計</a></li>
+            <li class="pl-3"><a href="#部門・グループ別集計v200-新規" class="toc-link hover:text-indigo-600 transition text-slate-500">部門・グループ別集計（v2.0.0 新規）</a></li>
+            <li class=""><a href="#リポジトリ構成" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">リポジトリ構成</a></li>
+            <li class=""><a href="#前提条件" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">前提条件</a></li>
+            <li class=""><a href="#セットアップ" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">セットアップ</a></li>
+            <li class="pl-3"><a href="#clasp-でデプロイgas" class="toc-link hover:text-indigo-600 transition text-slate-500">Clasp でデプロイ（GAS）</a></li>
+            <li class="pl-3"><a href="#オンプレミス-web-サーバー" class="toc-link hover:text-indigo-600 transition text-slate-500">オンプレミス Web サーバー</a></li>
+            <li class=""><a href="#使い方" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">使い方</a></li>
+            <li class="pl-3"><a href="#基本フロー" class="toc-link hover:text-indigo-600 transition text-slate-500">基本フロー</a></li>
+            <li class="pl-3"><a href="#データの取得方法" class="toc-link hover:text-indigo-600 transition text-slate-500">データの取得方法</a></li>
+            <li class="pl-3"><a href="#一覧の月別列" class="toc-link hover:text-indigo-600 transition text-slate-500">一覧の月別列</a></li>
+            <li class="pl-3"><a href="#部門モードの稼働率" class="toc-link hover:text-indigo-600 transition text-slate-500">部門モードの稼働率</a></li>
+            <li class=""><a href="#入力データ形式" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">入力データ形式</a></li>
+            <li class="pl-3"><a href="#製番別" class="toc-link hover:text-indigo-600 transition text-slate-500">製番別</a></li>
+            <li class="pl-3"><a href="#部門・グループ別" class="toc-link hover:text-indigo-600 transition text-slate-500">部門・グループ別</a></li>
+            <li class="pl-3"><a href="#共通-1" class="toc-link hover:text-indigo-600 transition text-slate-500">共通</a></li>
+            <li class=""><a href="#ai-分析について" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">AI 分析について</a></li>
+            <li class=""><a href="#開発メモ" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">開発メモ</a></li>
+            <li class="pl-3"><a href="#仕様書designhtmlの生成" class="toc-link hover:text-indigo-600 transition text-slate-500">仕様書（design.html）の生成</a></li>
+            <li class="pl-3"><a href="#更新の反映" class="toc-link hover:text-indigo-600 transition text-slate-500">更新の反映</a></li>
+            <li class="pl-3"><a href="#外部-cdn" class="toc-link hover:text-indigo-600 transition text-slate-500">外部 CDN</a></li>
+            <li class=""><a href="#トラブルシューティング" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">トラブルシューティング</a></li>
+            <li class=""><a href="#バージョン履歴" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">バージョン履歴</a></li>
+            <li class="pl-3"><a href="#v2215" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.15</a></li>
+            <li class="pl-3"><a href="#v2214" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.14</a></li>
+            <li class="pl-3"><a href="#v2213" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.13</a></li>
+            <li class="pl-3"><a href="#v2212" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.12</a></li>
+            <li class="pl-3"><a href="#v2211" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.11</a></li>
+            <li class="pl-3"><a href="#v2210" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.10</a></li>
+            <li class="pl-3"><a href="#v229" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.9</a></li>
+            <li class="pl-3"><a href="#v228" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.8</a></li>
+            <li class="pl-3"><a href="#v227" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.7</a></li>
+            <li class="pl-3"><a href="#v226" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.6</a></li>
+            <li class="pl-3"><a href="#v225" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.5</a></li>
+            <li class="pl-3"><a href="#v224" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.4</a></li>
+            <li class="pl-3"><a href="#v223" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.3</a></li>
+            <li class="pl-3"><a href="#v222" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.2</a></li>
+            <li class="pl-3"><a href="#v221" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.1</a></li>
+            <li class="pl-3"><a href="#v220" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.2.0</a></li>
+            <li class="pl-3"><a href="#v213" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.1.3</a></li>
+            <li class="pl-3"><a href="#v212" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.1.2</a></li>
+            <li class="pl-3"><a href="#v211" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.1.1</a></li>
+            <li class="pl-3"><a href="#v210" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.1.0</a></li>
+            <li class="pl-3"><a href="#v200" class="toc-link hover:text-indigo-600 transition text-slate-500">v2.0.0</a></li>
+            <li class="pl-3"><a href="#v110" class="toc-link hover:text-indigo-600 transition text-slate-500">v1.1.0</a></li>
+            <li class="pl-3"><a href="#v100" class="toc-link hover:text-indigo-600 transition text-slate-500">v1.0.0</a></li>
+            <li class=""><a href="#ライセンス" class="toc-link hover:text-indigo-600 transition font-medium text-slate-700">ライセンス</a></li>
           </ul>
         </div>
       </nav>
@@ -696,6 +710,61 @@ npm run build:design
       var help = document.getElementById('helpPageLink');
       if (app) { app.href = buildUrl(''); app.target = '_top'; }
       if (help) { help.href = buildUrl('help'); help.target = '_top'; }
+    })();
+
+    (function initTocScrollSpy() {
+      var navRoot = document.querySelector('.design-nav');
+      if (!navRoot) return;
+      var links = Array.prototype.slice.call(navRoot.querySelectorAll('a[href^="#"]'));
+      if (!links.length) return;
+
+      var items = links.map(function(link) {
+        var id = link.getAttribute('href').slice(1);
+        var el = document.getElementById(id);
+        return el ? { id: id, el: el, link: link } : null;
+      }).filter(Boolean);
+      if (!items.length) return;
+
+      items.sort(function(a, b) { return a.el.offsetTop - b.el.offsetTop; });
+      var scrollBox = navRoot.querySelector('.overflow-y-auto') || navRoot;
+      var ticking = false;
+
+      function setActive(id) {
+        links.forEach(function(link) {
+          var active = link.getAttribute('href') === '#' + id;
+          link.classList.toggle('toc-active', active);
+          if (active) {
+            var linkTop = link.offsetTop;
+            var boxTop = scrollBox.scrollTop;
+            var boxBottom = boxTop + scrollBox.clientHeight;
+            if (linkTop < boxTop || linkTop + link.offsetHeight > boxBottom) {
+              link.scrollIntoView({ block: 'nearest' });
+            }
+          }
+        });
+      }
+
+      function update() {
+        ticking = false;
+        var offset = 112;
+        var pos = window.scrollY + offset;
+        var activeId = items[0].id;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].el.offsetTop <= pos) activeId = items[i].id;
+        }
+        setActive(activeId);
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(update);
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      update();
     })();
   </script>
 </body>

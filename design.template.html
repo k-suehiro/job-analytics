@@ -15,6 +15,20 @@
     .design-nav a { scroll-margin-top: 5rem; }
     .doc-content { scroll-margin-top: 5rem; }
     .doc-content > *:first-child { margin-top: 0; }
+    .toc-link {
+      display: block;
+      padding: 0.2rem 0.5rem;
+      margin: 0 -0.5rem;
+      border-radius: 0.375rem;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .toc-link.toc-active {
+      color: #4f46e5;
+      font-weight: 600;
+      background: #eef2ff;
+      border-left-color: #6366f1;
+    }
 
     .doc-content h1 { font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
     .doc-content h2 { font-size: 1.35rem; font-weight: 700; color: #1e293b; margin: 2.5rem 0 0.75rem; padding-bottom: 0.35rem; border-bottom: 1px solid #e2e8f0; }
@@ -103,6 +117,61 @@
       var help = document.getElementById('helpPageLink');
       if (app) { app.href = buildUrl(''); app.target = '_top'; }
       if (help) { help.href = buildUrl('help'); help.target = '_top'; }
+    })();
+
+    (function initTocScrollSpy() {
+      var navRoot = document.querySelector('.design-nav');
+      if (!navRoot) return;
+      var links = Array.prototype.slice.call(navRoot.querySelectorAll('a[href^="#"]'));
+      if (!links.length) return;
+
+      var items = links.map(function(link) {
+        var id = link.getAttribute('href').slice(1);
+        var el = document.getElementById(id);
+        return el ? { id: id, el: el, link: link } : null;
+      }).filter(Boolean);
+      if (!items.length) return;
+
+      items.sort(function(a, b) { return a.el.offsetTop - b.el.offsetTop; });
+      var scrollBox = navRoot.querySelector('.overflow-y-auto') || navRoot;
+      var ticking = false;
+
+      function setActive(id) {
+        links.forEach(function(link) {
+          var active = link.getAttribute('href') === '#' + id;
+          link.classList.toggle('toc-active', active);
+          if (active) {
+            var linkTop = link.offsetTop;
+            var boxTop = scrollBox.scrollTop;
+            var boxBottom = boxTop + scrollBox.clientHeight;
+            if (linkTop < boxTop || linkTop + link.offsetHeight > boxBottom) {
+              link.scrollIntoView({ block: 'nearest' });
+            }
+          }
+        });
+      }
+
+      function update() {
+        ticking = false;
+        var offset = 112;
+        var pos = window.scrollY + offset;
+        var activeId = items[0].id;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].el.offsetTop <= pos) activeId = items[i].id;
+        }
+        setActive(activeId);
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(update);
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      update();
     })();
   </script>
 </body>
