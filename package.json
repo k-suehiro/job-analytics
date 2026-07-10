@@ -1,0 +1,11 @@
+{
+  "name": "job-analytics",
+  "private": true,
+  "description": "WDR工数ビューア — README から仕様書 HTML を生成するビルド用",
+  "scripts": {
+    "build:design": "node scripts/build-design.mjs"
+  },
+  "devDependencies": {
+    "marked": "^15.0.12"
+  }
+}

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WDR工数ビューア - 仕様書</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    html { scroll-behavior: smooth; }
+
+    .design-nav a { scroll-margin-top: 5rem; }
+    .doc-content { scroll-margin-top: 5rem; }
+    .doc-content > *:first-child { margin-top: 0; }
+
+    .doc-content h1 { font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; }
+    .doc-content h2 { font-size: 1.35rem; font-weight: 700; color: #1e293b; margin: 2.5rem 0 0.75rem; padding-bottom: 0.35rem; border-bottom: 1px solid #e2e8f0; }
+    .doc-content h3 { font-size: 1.1rem; font-weight: 600; color: #334155; margin: 1.75rem 0 0.5rem; }
+    .doc-content h4 { font-size: 1rem; font-weight: 600; color: #475569; margin: 1.25rem 0 0.375rem; }
+    .doc-content p { margin: 0.75rem 0; line-height: 1.75; color: #334155; }
+    .doc-content ul, .doc-content ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+    .doc-content ul { list-style-type: disc; }
+    .doc-content ol { list-style-type: decimal; }
+    .doc-content li { margin: 0.35rem 0; line-height: 1.65; color: #334155; }
+    .doc-content li::marker { color: #6366f1; }
+    .doc-content strong { font-weight: 600; color: #1e293b; }
+    .doc-content a { color: #4f46e5; text-decoration: underline; text-underline-offset: 2px; }
+    .doc-content a:hover { color: #4338ca; }
+    .doc-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 2rem 0; }
+    .doc-content blockquote { border-left: 4px solid #a5b4fc; padding: 0.25rem 0 0.25rem 1rem; margin: 1rem 0; color: #475569; background: #f8fafc; border-radius: 0 0.375rem 0.375rem 0; }
+    .doc-content code { font-size: 0.875em; background: #f1f5f9; color: #4338ca; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .doc-content pre { background: #0f172a; color: #e2e8f0; padding: 1rem 1.25rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-size: 0.8125rem; line-height: 1.6; }
+    .doc-content pre code { background: transparent; color: inherit; padding: 0; }
+    .doc-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875rem; }
+    .doc-content th, .doc-content td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+    .doc-content th { background: #f8fafc; font-weight: 600; color: #334155; }
+    .doc-content tr:nth-child(even) td { background: #fafafa; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+  <header class="bg-gradient-to-r from-slate-700 to-slate-900 sticky top-0 z-40 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2 flex-wrap">
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span>WDR工数ビューア 仕様書</span>
+          <span class="text-xs font-normal text-slate-300 bg-white/10 px-2 py-0.5 rounded">v2.2.15</span>
+        </h1>
+        <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · 2026-07-10 18:47</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <a href="help.html" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">ヘルプ</a>
+        <a href="index.html" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">アプリ</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      このファイルは <code class="bg-amber-100 px-1 rounded">README.md</code> から <code class="bg-amber-100 px-1 rounded">npm run build:design</code> で自動生成されています。仕様の正本は README.md です。手編集しないでください。
+    </div>
+
+    <div class="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
+      <nav class="design-nav hidden lg:block">
+        <div class="sticky top-24 bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-sm max-h-[calc(100vh-7rem)] overflow-y-auto">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">目次</p>
+          <ul class="space-y-1.5 text-slate-600">
+            <li class=""><a href="#主な機能" class="hover:text-indigo-600 transition font-medium text-slate-700">主な機能</a></li>
+            <li class="pl-3"><a href="#共通" class="hover:text-indigo-600 transition text-slate-500">共通</a></li>
+            <li class="pl-3"><a href="#製番別集計" class="hover:text-indigo-600 transition text-slate-500">製番別集計</a></li>
+            <li class="pl-3"><a href="#部門・グループ別集計v200-新規" class="hover:text-indigo-600 transition text-slate-500">部門・グループ別集計（v2.0.0 新規）</a></li>
+            <li class=""><a href="#リポジトリ構成" class="hover:text-indigo-600 transition font-medium text-slate-700">リポジトリ構成</a></li>
+            <li class=""><a href="#前提条件" class="hover:text-indigo-600 transition font-medium text-slate-700">前提条件</a></li>
+            <li class=""><a href="#セットアップ" class="hover:text-indigo-600 transition font-medium text-slate-700">セットアップ</a></li>
+            <li class="pl-3"><a href="#clasp-でデプロイgas" class="hover:text-indigo-600 transition text-slate-500">Clasp でデプロイ（GAS）</a></li>
+            <li class="pl-3"><a href="#オンプレミス-web-サーバー" class="hover:text-indigo-600 transition text-slate-500">オンプレミス Web サーバー</a></li>
+            <li class=""><a href="#使い方" class="hover:text-indigo-600 transition font-medium text-slate-700">使い方</a></li>
+            <li class="pl-3"><a href="#基本フロー" class="hover:text-indigo-600 transition text-slate-500">基本フロー</a></li>
+            <li class="pl-3"><a href="#データの取得方法" class="hover:text-indigo-600 transition text-slate-500">データの取得方法</a></li>
+            <li class="pl-3"><a href="#一覧の月別列" class="hover:text-indigo-600 transition text-slate-500">一覧の月別列</a></li>
+            <li class="pl-3"><a href="#部門モードの稼働率" class="hover:text-indigo-600 transition text-slate-500">部門モードの稼働率</a></li>
+            <li class=""><a href="#入力データ形式" class="hover:text-indigo-600 transition font-medium text-slate-700">入力データ形式</a></li>
+            <li class="pl-3"><a href="#製番別" class="hover:text-indigo-600 transition text-slate-500">製番別</a></li>
+            <li class="pl-3"><a href="#部門・グループ別" class="hover:text-indigo-600 transition text-slate-500">部門・グループ別</a></li>
+            <li class="pl-3"><a href="#共通-1" class="hover:text-indigo-600 transition text-slate-500">共通</a></li>
+            <li class=""><a href="#ai-分析について" class="hover:text-indigo-600 transition font-medium text-slate-700">AI 分析について</a></li>
+            <li class=""><a href="#開発メモ" class="hover:text-indigo-600 transition font-medium text-slate-700">開発メモ</a></li>
+            <li class="pl-3"><a href="#仕様書designhtmlの生成" class="hover:text-indigo-600 transition text-slate-500">仕様書（design.html）の生成</a></li>
+            <li class="pl-3"><a href="#更新の反映" class="hover:text-indigo-600 transition text-slate-500">更新の反映</a></li>
+            <li class="pl-3"><a href="#外部-cdn" class="hover:text-indigo-600 transition text-slate-500">外部 CDN</a></li>
+            <li class=""><a href="#トラブルシューティング" class="hover:text-indigo-600 transition font-medium text-slate-700">トラブルシューティング</a></li>
+            <li class=""><a href="#バージョン履歴" class="hover:text-indigo-600 transition font-medium text-slate-700">バージョン履歴</a></li>
+            <li class="pl-3"><a href="#v2215" class="hover:text-indigo-600 transition text-slate-500">v2.2.15</a></li>
+            <li class="pl-3"><a href="#v2214" class="hover:text-indigo-600 transition text-slate-500">v2.2.14</a></li>
+            <li class="pl-3"><a href="#v2213" class="hover:text-indigo-600 transition text-slate-500">v2.2.13</a></li>
+            <li class="pl-3"><a href="#v2212" class="hover:text-indigo-600 transition text-slate-500">v2.2.12</a></li>
+            <li class="pl-3"><a href="#v2211" class="hover:text-indigo-600 transition text-slate-500">v2.2.11</a></li>
+            <li class="pl-3"><a href="#v2210" class="hover:text-indigo-600 transition text-slate-500">v2.2.10</a></li>
+            <li class="pl-3"><a href="#v229" class="hover:text-indigo-600 transition text-slate-500">v2.2.9</a></li>
+            <li class="pl-3"><a href="#v228" class="hover:text-indigo-600 transition text-slate-500">v2.2.8</a></li>
+            <li class="pl-3"><a href="#v227" class="hover:text-indigo-600 transition text-slate-500">v2.2.7</a></li>
+            <li class="pl-3"><a href="#v226" class="hover:text-indigo-600 transition text-slate-500">v2.2.6</a></li>
+            <li class="pl-3"><a href="#v225" class="hover:text-indigo-600 transition text-slate-500">v2.2.5</a></li>
+            <li class="pl-3"><a href="#v224" class="hover:text-indigo-600 transition text-slate-500">v2.2.4</a></li>
+            <li class="pl-3"><a href="#v223" class="hover:text-indigo-600 transition text-slate-500">v2.2.3</a></li>
+            <li class="pl-3"><a href="#v222" class="hover:text-indigo-600 transition text-slate-500">v2.2.2</a></li>
+            <li class="pl-3"><a href="#v221" class="hover:text-indigo-600 transition text-slate-500">v2.2.1</a></li>
+            <li class="pl-3"><a href="#v220" class="hover:text-indigo-600 transition text-slate-500">v2.2.0</a></li>
+            <li class="pl-3"><a href="#v213" class="hover:text-indigo-600 transition text-slate-500">v2.1.3</a></li>
+            <li class="pl-3"><a href="#v212" class="hover:text-indigo-600 transition text-slate-500">v2.1.2</a></li>
+            <li class="pl-3"><a href="#v211" class="hover:text-indigo-600 transition text-slate-500">v2.1.1</a></li>
+            <li class="pl-3"><a href="#v210" class="hover:text-indigo-600 transition text-slate-500">v2.1.0</a></li>
+            <li class="pl-3"><a href="#v200" class="hover:text-indigo-600 transition text-slate-500">v2.0.0</a></li>
+            <li class="pl-3"><a href="#v110" class="hover:text-indigo-600 transition text-slate-500">v1.1.0</a></li>
+            <li class="pl-3"><a href="#v100" class="hover:text-indigo-600 transition text-slate-500">v1.0.0</a></li>
+            <li class=""><a href="#ライセンス" class="hover:text-indigo-600 transition font-medium text-slate-700">ライセンス</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <article class="doc-content bg-white border border-slate-200 rounded-xl p-5 sm:p-8 shadow-sm min-w-0">
+        <h1 id="wdr工数ビューア">WDR工数ビューア</h1>
+<p><strong>Version 2.2.15</strong></p>
+<p>WDR（Web Daily Report）からダウンロードした工数テキスト（TSV/CSV）をアップロードし、集計・可視化する Web アプリです。<br>オプションで LLM による総括・インサイトを生成できます。</p>
+<p>アップロードしたファイル形式を <strong>自動判定</strong> し、次の2種類の分析を切り替えます。</p>
+<table>
+<thead>
+<tr>
+<th>モード</th>
+<th>用途</th>
+<th>主な集計</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>製番別</strong></td>
+<td>1案件（製番）の工数分析</td>
+<td>拠点・スタッフ別 / 作業種別 / 月別</td>
+</tr>
+<tr>
+<td><strong>部門・グループ別</strong></td>
+<td>部門・グループの稼働分析</td>
+<td>個人別・稼働率 / クライアント別 / 製番別 / 事業所別 / 月別 / 作業者別・クライアント / 作業者別・作業種別</td>
+</tr>
+</tbody></table>
+<p><strong>Google Apps Script（Clasp）</strong> または <strong>社内オンプレミス Web サーバー</strong> に配置して利用できます。<br>単一 HTML ファイル（<code>index.html</code>）＋ GAS プロキシ（<code>main.gs</code>）構成です。</p>
+<h2 id="主な機能">主な機能</h2>
+<h3 id="共通">共通</h3>
+<ul>
+<li><strong>ファイル取り込み</strong> — TXT / TSV / CSV（Shift_JIS・UTF-8 自動判定）</li>
+<li><strong>形式自動判定</strong> — 製番別 / 部門・グループ別をファイル内容から判別</li>
+<li><strong>詳細モーダル</strong> — 集計行クリックで明細一覧（列ヘッダーでソート）</li>
+<li><strong>グラフ表示</strong> — 各タブに棒グラフ（Chart.js）</li>
+<li><strong>AI 分析（任意）</strong> — 集計サマリーを LLM に渡し、総括コメントを生成</li>
+<li><strong>AI プロバイダ切替（⚙・管理者のみ）</strong> — GB10 / Gemini / LM Studio。設定は GAS サーバーに保存され全員共通</li>
+</ul>
+<h3 id="製番別集計">製番別集計</h3>
+<ul>
+<li>拠点・スタッフ別 / 作業種別 / 月別の 3 タブ</li>
+<li>月別はデータ期間の全月をグラフ・一覧に表示</li>
+<li>PM 向け AI 総括（部門名を参照した作業内容の解釈）</li>
+</ul>
+<h3 id="部門・グループ別集計v200-新規">部門・グループ別集計（v2.0.0 新規）</h3>
+<ul>
+<li><strong>個人別・稼働率</strong> — 売上「有」または特定「有」の時間 ÷ 総作業時間</li>
+<li><strong>クライアント別</strong> — 工数・担当人数</li>
+<li><strong>製番別</strong> — 工数・担当人数（製番なしは「製番なし」に集約）。<strong>製番なしを含める</strong>チェックで表示切替（デフォルトは除外）</li>
+<li><strong>事業所別</strong> — 製番先頭2桁・品名【】・クライアント名から事業所を判定して集計</li>
+<li><strong>月別</strong> — 合計工数（棒）と平均稼働率（折れ線）の複合グラフ</li>
+<li><strong>分析期間フィルタ</strong> — 日付範囲を指定して再集計（デフォルトはデータ全体）</li>
+<li><strong>TP/TD製番オプション</strong> — 売上無・特定無の TP/TD 製番を稼働に含めるか選択可能</li>
+<li><strong>グラフの色分け</strong> — 稼働率グラフで TP/TD 分を琥珀色で積み上げ表示、製番別グラフでも TP/TD 製番を識別色で表示</li>
+<li><strong>インクリメンタルサーチ</strong> — 各タブでキーワード絞り込み</li>
+<li><strong>月別列（2か月以上の分析期間）</strong> — 個人別は月ごとの稼働率、クライアント別は月ごとの合計時間</li>
+<li><strong>詳細モーダル強化</strong> — 品名表示、売上/特定バッジ、長文は「…」＋ホバーで全文</li>
+<li><strong>担当者別グラフ</strong> — クライアント別・製番別・事業所別で複数人関与時は作業者ごとの工数割合を積み上げ表示</li>
+<li><strong>作業者別・クライアント</strong> — スタッフごとにクライアント構成を円グラフで表示</li>
+<li><strong>作業者別・作業種別</strong> — スタッフごとに作業種別の構成を円グラフで表示</li>
+<li>マネージャー向け AI 総括（稼働率・クライアント集中度・製番分散）</li>
+</ul>
+<h2 id="リポジトリ構成">リポジトリ構成</h2>
+<pre><code>job-analytics/
+├── index.html              # UI・集計ロジック・AI 呼び出し
+├── help.html               # 使い方ヘルプ（エンドユーザー向け）
+├── design.html             # 仕様書（README.md から自動生成。手編集しない）
+├── design.template.html    # 仕様書の HTML 枠組み
+├── scripts/build-design.mjs
+├── main.gs                 # GAS プロキシ（Mixed Content 回避用）
+├── appsscript.json         # GAS マニフェスト
+├── .clasp.json             # Clasp 設定
+└── README.md               # 仕様の正本
+</code></pre>
+<h2 id="前提条件">前提条件</h2>
+<ul>
+<li><strong>Clasp 利用時</strong>: Node.js、<code>clasp</code> CLI、Google アカウントでのログイン</li>
+<li><strong>オンプレ利用時</strong>: 社内 Web サーバー（IIS / nginx / Apache 等）</li>
+<li>利用 PC が AI API に到達できること</li>
+<li>AI 分析を使う場合<ul>
+<li><strong>GB10（本番想定）</strong>: 閉域網内の OpenAI 互換 API</li>
+<li><strong>Gemini</strong>: インターネット経由で Google AI API に到達可能であること</li>
+<li><strong>LM Studio</strong>: 利用 PC 上で LM Studio サーバーが起動していること</li>
+</ul>
+</li>
+</ul>
+<h2 id="セットアップ">セットアップ</h2>
+<h3 id="clasp-でデプロイgas">Clasp でデプロイ（GAS）</h3>
+<pre><code class="language-bash">git clone https://github.com/k-suehiro/job-analytics.git
+cd job-analytics
+clasp login
+clasp push
+</code></pre>
+<p>Web アプリとしてデプロイする場合は GAS エディタから「デプロイ」→「新しいデプロイ」を実行してください。</p>
+<p><strong>AI 設定（管理者）</strong></p>
+<ul>
+<li>ヘッダー右上の ⚙ ボタンは <strong>GAS スクリプト所有者</strong>（および <code>AI_SETTINGS_ADMIN_EMAILS</code> に登録したメール）のみ表示されます</li>
+<li>保存した設定は GAS の Script Properties に格納され、<strong>全利用者に共通</strong>で適用されます</li>
+<li>Web アプリは <strong>「自分として実行」</strong> のままで問題ありません。利用者は <strong>Google アカウントでログイン</strong> した状態で開いてください</li>
+<li>メールアドレスが取得できない場合は、管理者用 URL（<code>?ak=...</code> 付き）で開くと ⚙ が表示されます（下記）</li>
+</ul>
+<p><strong>管理者用 URL の取得（設定ボタンが出ない場合）</strong></p>
+<ol>
+<li>GAS エディタで <code>logAiSettingsAdminAccessUrl</code> を実行</li>
+<li>実行ログに表示された URL（<code>?ak=...</code> 付き）をブックマーク</li>
+<li>その URL から開くと ⚙ が表示されます（他の人には通常 URL を共有してください）</li>
+</ol>
+<p>任意: <code>registerAiSettingsAdminEmails</code> を GAS エディタで実行すると、自分のメールを管理者に明示登録できます。</p>
+<h3 id="オンプレミス-web-サーバー">オンプレミス Web サーバー</h3>
+<p><code>index.html</code> を公開ディレクトリに配置します。</p>
+<table>
+<thead>
+<tr>
+<th>サーバー</th>
+<th>配置例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IIS</td>
+<td><code>C:\inetpub\wwwroot\job-analytics\index.html</code></td>
+</tr>
+<tr>
+<td>nginx</td>
+<td><code>/var/www/html/job-analytics/index.html</code></td>
+</tr>
+</tbody></table>
+<p>GB10 利用時は <strong>HTML を HTTP で配信</strong> することを推奨します（Mixed Content 回避）。</p>
+<h2 id="使い方">使い方</h2>
+<p>エンドユーザー向けの詳細ガイドは <strong><a href="help.html">help.html</a></strong>（アプリ画面上部の「ヘルプ」リンクからも開けます）を参照してください。</p>
+<h3 id="基本フロー">基本フロー</h3>
+<ol>
+<li>WDR から工数テキストをダウンロード（製番別 or 部門・グループ別）</li>
+<li>ファイルを選択して <strong>集計する</strong> をクリック</li>
+<li>形式に応じた集計結果が表示される</li>
+<li>（任意）<strong>AI分析も実行する</strong> にチェック、または集計後に分析ボタン（3種類）を実行</li>
+</ol>
+<p>集計後の AI 分析は横並びの3ボタンから切り口を選べます。</p>
+<table>
+<thead>
+<tr>
+<th>モード</th>
+<th>ボタン</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>製番別</td>
+<td>業務サマリー / 偏り・集中度 / 気になる点</td>
+</tr>
+<tr>
+<td>部門別</td>
+<td>チーム総括 / 個人・稼働率 / リスク・依存</td>
+</tr>
+</tbody></table>
+<p>「AI分析も実行する」チェック時は、製番別なら <strong>業務サマリー</strong>、部門別なら <strong>チーム総括</strong> が自動実行されます。</p>
+<h3 id="データの取得方法">データの取得方法</h3>
+<p>画面上部の説明を参照してください。</p>
+<ul>
+<li><strong>マネージャー</strong> — WDR 管理メニューから取得（A: 製番別 / B: 部門・グループ別を横並びのカードで案内）</li>
+<li><strong>マネージャー以外</strong> — 製番別（A）のみ（登録済み日報の製番詳細からダウンロード、カード表示）</li>
+</ul>
+<h3 id="一覧の月別列">一覧の月別列</h3>
+<p>分析期間が <strong>2か月以上</strong> の場合のみ、次のタブに月別列が追加されます（1か月のみのときは非表示）。</p>
+<table>
+<thead>
+<tr>
+<th>タブ</th>
+<th>月別列の内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>個人別・稼働率</td>
+<td>各月の稼働率（%）</td>
+</tr>
+<tr>
+<td>クライアント別</td>
+<td>各月の合計時間（h）</td>
+</tr>
+</tbody></table>
+<h3 id="部門モードの稼働率">部門モードの稼働率</h3>
+<pre><code>稼働時間 = 売上「有」または特定「有」の行の作業時間の合計
+         （オプション ON 時は TP/TD 製番の売上無・特定無も加算）
+総時間   = 同一作業者の全行の作業時間の合計（期間内）
+稼働率   = 稼働時間 ÷ 総時間 × 100
+</code></pre>
+<p><strong>TP/TD製番の売上無・特定無も稼働に含める</strong>（分析期間の右側）を ON にすると、製番が <code>TP</code> / <code>TD</code> で始まり売上・特定が両方「無」の行も稼働時間に含めます。</p>
+<p><strong>グラフの見方（個人別・稼働率）</strong></p>
+<table>
+<thead>
+<tr>
+<th>色</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>indigo（青紫）</td>
+<td>売上「有」または特定「有」の稼働分</td>
+</tr>
+<tr>
+<td>琥珀色</td>
+<td>TP/TD 製番の売上無・特定無（オプション ON 時のみ積み上げ）</td>
+</tr>
+</tbody></table>
+<p>製番別タブのグラフでは、TP/TD で始まる製番の棒を琥珀色で表示します。クライアント別・製番別・事業所別で <strong>2名以上</strong> が関与する場合は、作業者ごとの工数割合を積み上げ棒グラフで表示し、ホバーで名前と時間・割合を確認できます。担当者は原則すべて個別表示し、「その他」は <strong>16名以上</strong> いて末尾に <strong>2名以上</strong> まとまる場合のみ使います。</p>
+<p><strong>製番別タブの「製番なしを含める」</strong></p>
+<p>デフォルトでは「製番なし」行を集計・グラフから除外します。製番なしのボリュームが大きい場合でも、個別製番の比較がしやすくなります。チェックを ON にすると従来どおり製番なしも含めます。</p>
+<p><strong>事業所別の判定ルール</strong></p>
+<p>製番の先頭2桁（大文字小文字は区別しない）などから事業所を判定します。</p>
+<table>
+<thead>
+<tr>
+<th>先頭2桁</th>
+<th>事業所</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TK, FK</td>
+<td>東京事業所</td>
+</tr>
+<tr>
+<td>HM</td>
+<td>浜松事業所</td>
+</tr>
+<tr>
+<td>NA</td>
+<td>名古屋事業所</td>
+</tr>
+<tr>
+<td>MT</td>
+<td>松本事業所</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>大阪事業所</td>
+</tr>
+<tr>
+<td>SL</td>
+<td>国内支援室CSC</td>
+</tr>
+<tr>
+<td>MP</td>
+<td>クライアントに「シープラス」または「大野印刷」→ <strong>シープラス</strong>、それ以外 → <strong>海外事業部</strong></td>
+</tr>
+<tr>
+<td>TP, TD</td>
+<td>プロダクションセンター</td>
+</tr>
+<tr>
+<td>EK</td>
+<td>品名の【…】から判定（下記）</td>
+</tr>
+<tr>
+<td>HP</td>
+<td>国内支援室浜松プリントセンター</td>
+</tr>
+<tr>
+<td>製番なし</td>
+<td>製番なし</td>
+</tr>
+<tr>
+<td>上記以外</td>
+<td>その他</td>
+</tr>
+</tbody></table>
+<p>EK 製番の品名【】判定: 【本社】【人事総務課】→ 人事総務部、【財務経理部】→ 財務経理部、【役員室】→ 役員室、【】なし → 人事総務部（本社扱い）。その他の【…】は括弧内の文字を事業所名として使用します。</p>
+<p>分析期間を変更した場合、分子・分母ともに <strong>その期間内の行のみ</strong> で再計算されます。</p>
+<h2 id="入力データ形式">入力データ形式</h2>
+<p>WDR からエクスポートしたタブ区切り（TSV）テキストを読み込みます。<strong>ヘッダー行の列名</strong>から列位置を自動判定し、下記の列名は互いに同義として扱います。</p>
+<table>
+<thead>
+<tr>
+<th>意味</th>
+<th>読み取る列名（いずれか）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>日付</td>
+<td>日付</td>
+</tr>
+<tr>
+<td>拠点</td>
+<td>事業所 / 所属</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>部署</td>
+</tr>
+<tr>
+<td>担当者</td>
+<td>スタッフ / 作業者名 / 社員名</td>
+</tr>
+<tr>
+<td>作業種別</td>
+<td>作業種別</td>
+</tr>
+<tr>
+<td>作業内容</td>
+<td>作業内容 / 業務内容</td>
+</tr>
+<tr>
+<td>作業時間</td>
+<td>作業時間</td>
+</tr>
+<tr>
+<td>社員番号</td>
+<td>社員番号</td>
+</tr>
+<tr>
+<td>製番</td>
+<td>製番 / 製造番号</td>
+</tr>
+<tr>
+<td>クライアント</td>
+<td>クライアント / 得意先</td>
+</tr>
+<tr>
+<td>品名</td>
+<td>品名</td>
+</tr>
+<tr>
+<td>売上・特定</td>
+<td>売上 / 特定（有/無）</td>
+</tr>
+<tr>
+<td>役務単価</td>
+<td>役務単価</td>
+</tr>
+</tbody></table>
+<p>次の列は <strong>読み込みません</strong>（あっても無視）: クレーム、売上完了、親カテゴリ、子カテゴリ、FMコード、Unique ID、作業コード、担当営業</p>
+<h3 id="製番別">製番別</h3>
+<pre><code>#日付	事業所	部署	スタッフ	作業種別	役務単価	作業内容	作業時間
+</code></pre>
+<p>ヘッダーに <strong>作業種別</strong> と <strong>事業所/所属</strong> があり、売上・製番など部門向け列がない場合に製番別として集計します。</p>
+<h3 id="部門・グループ別">部門・グループ別</h3>
+<pre><code>日付	社員番号	作業者名	製番	売上	特定	クライアント	品名	...	作業内容	作業時間
+</code></pre>
+<p>または得意先形式:</p>
+<pre><code>得意先	品名	製造番号	担当営業	日付	所属	社員名	作業コード	業務内容	役務単価	作業時間	クレーム	売上	売上完了
+</code></pre>
+<p>ヘッダーに <strong>売上・特定・製番/製造番号・クライアント/得意先・社員番号</strong> のいずれかがある場合、部門・グループ別として集計します（特定列がなくても可）。</p>
+<p>メタ情報の例:</p>
+<pre><code>#プロダクションセンター浜松2 / 浜松2制作2G
+#期間:2025-07-01-2026-06-30
+#製番: 無し含む
+</code></pre>
+<h3 id="共通-1">共通</h3>
+<ul>
+<li>文字コード: UTF-8 / Shift_JIS（CP932）を自動判定</li>
+<li><code>#</code> で始まる行はメタデータまたはコメントとして処理</li>
+</ul>
+<h2 id="ai-分析について">AI 分析について</h2>
+<p>LLM には <strong>明細行ではなく集計サマリー</strong> のみ送信します。</p>
+<table>
+<thead>
+<tr>
+<th>モード</th>
+<th>送信内容の例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>製番別</td>
+<td>スタッフ別上位 20 件、作業種別上位 15 件、月別全件</td>
+</tr>
+<tr>
+<td>部門別</td>
+<td>個人稼働率、クライアント別、製番別（製番なしの含否反映）、事業所別、月別のサマリー</td>
+</tr>
+</tbody></table>
+<h2 id="開発メモ">開発メモ</h2>
+<h3 id="仕様書designhtmlの生成">仕様書（design.html）の生成</h3>
+<p>仕様の正本は <strong>README.md</strong> です。ブラウザで読みやすい仕様書 HTML は次のコマンドで生成します（<code>design.html</code> は手編集しないでください）。</p>
+<pre><code class="language-bash">npm install
+npm run build:design
+</code></pre>
+<ul>
+<li><strong>入力</strong>: <code>README.md</code> + <code>design.template.html</code>（枠組み）</li>
+<li><strong>出力</strong>: <code>design.html</code>（社内共有・レビュー用）</li>
+<li><strong>Clasp push 対象外</strong>: <code>README.md</code> / <code>design.html</code> / <code>design.template.html</code> は GAS にアップロードされません</li>
+</ul>
+<h3 id="更新の反映">更新の反映</h3>
+<ul>
+<li><strong>Clasp</strong>: <code>clasp push</code> 後、GAS の Web アプリを再デプロイ（または最新版を利用）</li>
+<li><strong>オンプレ</strong>: <code>index.html</code> を差し替え、利用者にハードリロード（<code>Ctrl+Shift+R</code>）を案内</li>
+</ul>
+<h3 id="外部-cdn">外部 CDN</h3>
+<ul>
+<li>Tailwind CSS</li>
+<li>marked.js（Markdown → HTML）</li>
+<li>Chart.js（グラフ）</li>
+</ul>
+<p>閉域網で CDN に到達できない場合は、社内 CDN またはローカルホストに差し替えてください。</p>
+<h2 id="トラブルシューティング">トラブルシューティング</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>確認ポイント</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>データ形式を判定できない</td>
+<td>ヘッダー行に日付・作業時間・作業内容/業務内容・担当者名があるか確認</td>
+</tr>
+<tr>
+<td>部門モードで明細が空</td>
+<td>ヘッダー行の次からデータ行があるか確認</td>
+</tr>
+<tr>
+<td>稼働率が想定と違う</td>
+<td>売上・特定の「有/無」列、分析期間、TP/TD オプションの ON/OFF</td>
+</tr>
+<tr>
+<td>設定ボタン（⚙）が表示されない</td>
+<td>管理者用 URL（<code>?ak=...</code> 付き）で開く。GAS エディタで <code>logAiSettingsAdminAccessUrl</code> を実行して URL を取得</td>
+</tr>
+<tr>
+<td>GB10 で Mixed Content</td>
+<td>GAS（HTTPS）から社内 HTTP API へは直接接続不可。GAS プロキシまたは HTTP 配信を検討</td>
+</tr>
+<tr>
+<td>画面が崩れる</td>
+<td>Tailwind CDN に到達できているか</td>
+</tr>
+</tbody></table>
+<h2 id="バージョン履歴">バージョン履歴</h2>
+<h3 id="v2215">v2.2.15</h3>
+<ul>
+<li>使い方ヘルプ（<code>help.html</code>）を追加。アプリ画面上部の「ヘルプ」リンクおよび GAS の <code>?page=help</code> から表示可能</li>
+<li>ヘルプの用語集に GB10（社内 AI 推論基盤）の説明を追加</li>
+<li>GAS 環境でヘルプリンクが遷移しない問題を修正（配信 URL をサーバーから注入、<code>?page=help</code> + <code>target=&quot;_top&quot;</code>）</li>
+<li>GAS テンプレート処理でヘルプページが SyntaxError になる問題を修正</li>
+</ul>
+<h3 id="v2214">v2.2.14</h3>
+<ul>
+<li>製番別タブに「製番なしを含める」チェックボックスを追加（デフォルトは除外）</li>
+<li>事業所別タブを追加（製番先頭2桁・品名【】・クライアント名から事業所を判定）</li>
+</ul>
+<h3 id="v2213">v2.2.13</h3>
+<ul>
+<li>作業者別・クライアント／作業者別・作業種別の円グラフ凡例に割合（%）を表示</li>
+</ul>
+<h3 id="v2212">v2.2.12</h3>
+<ul>
+<li>部門別に「作業者別・作業種別」タブを追加（スタッフごとの作業種別構成を円グラフで表示）</li>
+</ul>
+<h3 id="v2211">v2.2.11</h3>
+<ul>
+<li>GAS 初期化データの埋め込みを Base64 経由に変更し、配信時の JavaScript 構文崩れを回避</li>
+</ul>
+<h3 id="v2210">v2.2.10</h3>
+<ul>
+<li>AI分析の3ボタンにアイコンを追加し、説明文「分析の切り口を選んでください」を削除</li>
+</ul>
+<h3 id="v229">v2.2.9</h3>
+<ul>
+<li>バージョン更新時の初回アクセスでリリースノートを自動表示（localStorage でバージョンごとに1回）</li>
+<li>ヘッダーのタイトル（WDR工数ビューア）クリックでリリースノートをいつでも表示</li>
+</ul>
+<h3 id="v228">v2.2.8</h3>
+<ul>
+<li>AI分析結果を3つの分析ボタン直下に表示（集計一覧の上）</li>
+</ul>
+<h3 id="v227">v2.2.7</h3>
+<ul>
+<li>部門別・月別グラフに平均稼働率の折れ線を重ね表示（左軸: 合計時間、右軸: 稼働率%）</li>
+</ul>
+<h3 id="v226">v2.2.6</h3>
+<ul>
+<li>ヘッダー列名の別名対応（事業所=所属、作業内容=業務内容、製番=製造番号、クライアント=得意先 等）</li>
+<li>得意先・製造番号形式を部門・グループ別として読み込み可能に</li>
+<li>無視列（クレーム、売上完了、親/子カテゴリ、FMコード、Unique ID、作業コード、担当営業）を明示</li>
+</ul>
+<h3 id="v225">v2.2.5</h3>
+<ul>
+<li>ヘッダー行の厳密検証を追加。製番別・部門別の対応ヘッダーのみ読み込み、得意先・製造番号形式など未対応ファイルはエラーで停止</li>
+<li>部門別もヘッダー列名から列位置を自動判定（固定インデックス依存を廃止）</li>
+<li>ヘッダー未検出時の固定列フォールバックを廃止（誤って人名が作業内容になる問題を防止）</li>
+</ul>
+<h3 id="v224">v2.2.4</h3>
+<ul>
+<li>AI分析を3パターンに分割（横並びボタン）。製番別: 業務サマリー / 偏り・集中度 / 気になる点。部門別: チーム総括 / 個人・稼働率 / リスク・依存</li>
+<li>「AI分析も実行する」チェック時の自動実行は業務サマリー（製番別）またはチーム総括（部門別）</li>
+</ul>
+<h3 id="v223">v2.2.3</h3>
+<ul>
+<li>製番別モードで作業内容が役務単価になる不具合を修正（列マッピングをヘッダーから自動判定）</li>
+</ul>
+<h3 id="v222">v2.2.2</h3>
+<ul>
+<li>クライアント別・製番別グラフの担当者表示を改善（原則全員個別、「その他」は16名以上かつ2名以上まとまる場合のみ）</li>
+<li>グラフ凡例の担当者名から社員番号を除去</li>
+</ul>
+<h3 id="v221">v2.2.1</h3>
+<ul>
+<li>製番別モードの月別グラフを期間内の全月表示に変更（12か月上限を撤廃）</li>
+<li>月別ラベルを <code>26/07</code> 形式に統一</li>
+</ul>
+<h3 id="v220">v2.2.0</h3>
+<ul>
+<li>アプリ名を「WDR工数ビューア」に変更</li>
+<li>ヘッダーに「テキストデータを読み込む」ボタンを追加（集計画面からファイル選択画面へ戻る）</li>
+</ul>
+<h3 id="v213">v2.1.3</h3>
+<ul>
+<li>AI 設定ボタン表示の修正（GAS でメール取得できない場合の管理者用 URL <code>?ak=</code> フォールバック）</li>
+<li>ページ読み込み時にサーバー側で管理者判定を注入</li>
+</ul>
+<h3 id="v212">v2.1.2</h3>
+<ul>
+<li>AI 設定を GAS サーバーに保存し全員共通で適用</li>
+<li>設定ボタン（⚙）を管理者（スクリプト所有者等）のみに表示</li>
+</ul>
+<h3 id="v211">v2.1.1</h3>
+<ul>
+<li>一覧・詳細モーダルの表示調整（名前・年月・稼働率・作業時間のフォーマット）</li>
+<li>詳細モーダルを2行固定＋省略表示、製番別一覧に品名列を追加</li>
+<li>検索窓を一覧表の直上に移動、クライアント列幅の拡大</li>
+</ul>
+<h3 id="v210">v2.1.0</h3>
+<ul>
+<li>個人別・稼働率 / クライアント別一覧に月別列を追加（分析期間が2か月以上のとき）</li>
+<li>詳細モーダルに品名を追加、売上/特定をバッジ化、長文フィールドは省略表示＋ツールチップ</li>
+<li>クライアント別・製番別グラフで担当者ごとの工数割合を積み上げ表示（複数人関与時）</li>
+<li>マネージャー以外向け取得手順のカード表示を統一</li>
+</ul>
+<h3 id="v200">v2.0.0</h3>
+<ul>
+<li>部門・グループ別集計モードを追加（形式自動判定）</li>
+<li>個人別・稼働率 / クライアント別 / 製番別 / 月別の 4 タブ</li>
+<li>分析期間フィルタ、インクリメンタルサーチ、詳細モーダル</li>
+<li>TP/TD 製番の売上無・特定無を稼働に含めるオプション</li>
+<li>稼働率・製番別グラフでの TP/TD 色分け</li>
+<li>部門モード向け AI 分析プロンプト</li>
+<li>製番別・部門別のデータ取得手順を画面に併記（マネージャー向けは横並び）</li>
+</ul>
+<h3 id="v110">v1.1.0</h3>
+<ul>
+<li>GAS 配信を廃止し、社内オンプレ Web サーバーへの静的配置構成に変更</li>
+<li>GB10（閉域網 HTTP API）をデフォルト AI プロバイダとして利用可能に</li>
+</ul>
+<h3 id="v100">v1.0.0</h3>
+<ul>
+<li>工数 TSV/CSV の取り込み（UTF-8 / Shift_JIS 自動判定）</li>
+<li>拠点・スタッフ別 / 作業種別 / 月別の 3 タブ集計</li>
+<li>集計行クリックによる詳細モーダル（ソート対応）</li>
+<li>任意の LLM による PM 向け総括（GB10 / Gemini / LM Studio 切替）</li>
+</ul>
+<h2 id="ライセンス">ライセンス</h2>
+<p>社内利用を想定したプロジェクトです。利用ポリシーは組織の規定に従ってください。</p>
+
+      </article>
+    </div>
+
+    <footer class="text-center text-xs text-slate-400 py-8">
+      Generated from README.md · WDR工数ビューア v2.2.15
+    </footer>
+  </div>
+</body>
+</html>

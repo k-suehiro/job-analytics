@@ -54,12 +54,15 @@ WDR（Web Daily Report）からダウンロードした工数テキスト（TSV/
 
 ```
 job-analytics/
-├── index.html        # UI・集計ロジック・AI 呼び出し
-├── help.html         # 使い方ヘルプ（エンドユーザー向け）
-├── main.gs           # GAS プロキシ（Mixed Content 回避用）
-├── appsscript.json   # GAS マニフェスト
-├── .clasp.json       # Clasp 設定
-└── README.md
+├── index.html              # UI・集計ロジック・AI 呼び出し
+├── help.html               # 使い方ヘルプ（エンドユーザー向け）
+├── design.html             # 仕様書（README.md から自動生成。手編集しない）
+├── design.template.html    # 仕様書の HTML 枠組み
+├── scripts/build-design.mjs
+├── main.gs                 # GAS プロキシ（Mixed Content 回避用）
+├── appsscript.json         # GAS マニフェスト
+├── .clasp.json             # Clasp 設定
+└── README.md               # 仕様の正本
 ```
 
 ## 前提条件
@@ -261,6 +264,19 @@ LLM には **明細行ではなく集計サマリー** のみ送信します。
 | 部門別 | 個人稼働率、クライアント別、製番別（製番なしの含否反映）、事業所別、月別のサマリー |
 
 ## 開発メモ
+
+### 仕様書（design.html）の生成
+
+仕様の正本は **README.md** です。ブラウザで読みやすい仕様書 HTML は次のコマンドで生成します（`design.html` は手編集しないでください）。
+
+```bash
+npm install
+npm run build:design
+```
+
+- **入力**: `README.md` + `design.template.html`（枠組み）
+- **出力**: `design.html`（社内共有・レビュー用）
+- **Clasp push 対象外**: `README.md` / `design.html` / `design.template.html` は GAS にアップロードされません
 
 ### 更新の反映
 
