@@ -366,6 +366,10 @@
               class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
               製番別
             </button>
+            <button type="button" data-dept-tab="office" onclick="switchDeptSummaryTab('office')"
+              class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+              事業所別
+            </button>
             <button type="button" data-dept-tab="monthly" onclick="switchDeptSummaryTab('monthly')"
               class="dept-summary-tab shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">
               月別
@@ -420,9 +424,14 @@
           </div>
           <div id="deptPanel-seiban" class="dept-summary-panel hidden">
             <div class="summary-chart-wrap"><canvas id="deptChart-seiban"></canvas></div>
-            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+            <div class="px-4 py-2 border-b border-slate-100 bg-white flex flex-wrap items-center gap-x-4 gap-y-2">
+              <label class="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                <input id="includeNoSeibanInSeiban" type="checkbox" onchange="onIncludeNoSeibanChange()"
+                  class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                <span class="text-xs text-slate-600">製番なしを含める</span>
+              </label>
               <input type="search" id="deptSearch-seiban" placeholder="製番・クライアントで絞り込み…" oninput="onDeptSearchInput('seiban', this.value)"
-                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                class="flex-1 min-w-[12rem] text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div class="max-h-64 overflow-y-auto overflow-x-auto">
             <table class="summary-table divide-y divide-slate-200">
@@ -436,6 +445,25 @@
                 </tr>
               </thead>
               <tbody id="deptTableBody-seiban" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+            </div>
+          </div>
+          <div id="deptPanel-office" class="dept-summary-panel hidden">
+            <div class="summary-chart-wrap"><canvas id="deptChart-office"></canvas></div>
+            <div class="px-4 py-2 border-b border-slate-100 bg-white">
+              <input type="search" id="deptSearch-office" placeholder="事業所名で絞り込み…" oninput="onDeptSearchInput('office', this.value)"
+                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="max-h-64 overflow-y-auto overflow-x-auto">
+            <table class="summary-table divide-y divide-slate-200">
+              <thead class="bg-slate-50 sticky top-0">
+                <tr>
+                  <th scope="col" class="col-label px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">事業所</th>
+                  <th scope="col" class="col-mid px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">人数</th>
+                  <th scope="col" class="col-hours px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">合計 (h)</th>
+                </tr>
+              </thead>
+              <tbody id="deptTableBody-office" class="bg-white divide-y divide-slate-200"></tbody>
             </table>
             </div>
           </div>
@@ -601,7 +629,7 @@
     }
 
     const GAS_INIT = JSON.parse(decodeBase64Utf8('<?= gasInitBase64 ?>') || '{}');
-    const APP_VERSION = '2.2.13';
+    const APP_VERSION = '2.2.14';
     const APP_DISPLAY_NAME = 'WDR工数ビューア';
 
     let projectColMap = null;
@@ -611,8 +639,9 @@
     let deptMeta = {};
     let deptPeriodFilter = { start: '', end: '' };
     let includeTpTdNonBillable = false;
-    let deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
-    let deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [], staffclient: [], staffworktype: [] };
+    let includeNoSeibanInSeiban = false;
+    let deptSearchQueries = { utilization: '', client: '', seiban: '', office: '', monthly: '', staffclient: '', staffworktype: '' };
+    let deptSummaryCache = { utilization: [], client: [], seiban: [], office: [], monthly: [], staffclient: [], staffworktype: [] };
     let deptAnalysisMonthKeys = [];
     let deptSearchTimers = {};
     let cachedSummaryText = '';
@@ -620,7 +649,7 @@
     let sharedAiSettingsFromServer = null;
     let aiSettingsReady = false;
     let summaryCharts = { staff: null, worktype: null, monthly: null };
-    let deptSummaryCharts = { utilization: null, client: null, seiban: null, monthly: null };
+    let deptSummaryCharts = { utilization: null, client: null, seiban: null, office: null, monthly: null };
     let deptStaffClientCharts = [];
     let deptStaffWorkTypeCharts = [];
     const SUMMARY_CHART_LIMIT = 12;
@@ -633,7 +662,7 @@
     const UTIL_STANDARD_COLOR = '#6366f1';
     const UTIL_TP_TD_COLOR = '#f59e0b';
 
-    const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null, deptStaff: 20, deptClient: 15, deptSeiban: 15, deptMonth: null };
+    const AI_SUMMARY_LIMITS = { staff: 20, workType: 15, month: null, deptStaff: 20, deptClient: 15, deptSeiban: 15, deptOffice: 15, deptMonth: null };
     const AI_OUTPUT_FORMAT = '出力形式: ## 見出し と - 箇条書きのみ。Markdownの太字記法は使わないでください。\n\n';
     const AI_ANALYSIS_PATTERNS = {
       project: [
@@ -788,6 +817,16 @@
       seiban: [
         { key: 'workDate', label: '作業日' },
         { key: 'staffKey', label: '作業者' },
+        { key: 'client', label: 'クライアント' },
+        { key: 'productName', label: '品名', ellipsis: true },
+        { key: 'workType', label: '作業種別', ellipsis: true },
+        { key: 'workContent', label: '作業内容', ellipsis: true },
+        { key: 'hours', label: '作業時間 (h)', align: 'right', format: v => formatHours(v) }
+      ],
+      office: [
+        { key: 'workDate', label: '作業日' },
+        { key: 'staffKey', label: '作業者' },
+        { key: 'seiban', label: '製番' },
         { key: 'client', label: 'クライアント' },
         { key: 'productName', label: '品名', ellipsis: true },
         { key: 'workType', label: '作業種別', ellipsis: true },
@@ -1198,13 +1237,16 @@
       deptPeriodFilter = { start: '', end: '' };
       deptAnalysisMonthKeys = [];
       includeTpTdNonBillable = false;
+      includeNoSeibanInSeiban = false;
       cachedSummaryText = '';
-      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
-      deptSummaryCache = { utilization: [], client: [], seiban: [], monthly: [], staffclient: [], staffworktype: [] };
+      deptSearchQueries = { utilization: '', client: '', seiban: '', office: '', monthly: '', staffclient: '', staffworktype: '' };
+      deptSummaryCache = { utilization: [], client: [], seiban: [], office: [], monthly: [], staffclient: [], staffworktype: [] };
 
       var tpTdCheck = document.getElementById('includeTpTdNonBillable');
       if (tpTdCheck) tpTdCheck.checked = false;
-      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
+      var noSeibanCheck = document.getElementById('includeNoSeibanInSeiban');
+      if (noSeibanCheck) noSeibanCheck.checked = false;
+      ['utilization', 'client', 'seiban', 'office', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
         var el = document.getElementById('deptSearch-' + id);
         if (el) el.value = '';
       });
@@ -1637,6 +1679,64 @@
       return v;
     }
 
+    function resolveEkOfficeFromProductName(productName) {
+      const pn = String(productName || '');
+      const match = pn.match(/【([^】]*)】/);
+      if (!match) return '人事総務部';
+      const inner = match[1].trim();
+      if (!inner) return '人事総務部';
+      if (inner === '本社' || inner === '人事総務課') return '人事総務部';
+      if (inner === '財務経理部') return '財務経理部';
+      if (inner === '役員室') return '役員室';
+      return inner;
+    }
+
+    function resolveOfficeFromRecord(record) {
+      const seiban = record.seiban || normalizeSeiban(record.seibanRaw);
+      if (seiban === '製番なし') return '製番なし';
+
+      const raw = String(record.seibanRaw || seiban || '').trim().toUpperCase();
+      const prefix = raw.slice(0, 2);
+      const client = String(record.client || '');
+
+      switch (prefix) {
+        case 'TK':
+        case 'FK':
+          return '東京事業所';
+        case 'HM':
+          return '浜松事業所';
+        case 'NA':
+          return '名古屋事業所';
+        case 'MT':
+          return '松本事業所';
+        case 'OS':
+          return '大阪事業所';
+        case 'SL':
+          return '国内支援室CSC';
+        case 'MP':
+          if (client.includes('シープラス') || client.includes('大野印刷')) return 'シープラス';
+          return '海外事業部';
+        case 'TP':
+        case 'TD':
+          return 'プロダクションセンター';
+        case 'EK':
+          return resolveEkOfficeFromProductName(record.productName);
+        case 'HP':
+          return '国内支援室浜松プリントセンター';
+        default:
+          return 'その他';
+      }
+    }
+
+    function isNoSeibanEntry(entry) {
+      return entry.key === '製番なし' || entry.label === '製番なし';
+    }
+
+    function filterSeibanEntries(entries) {
+      if (includeNoSeibanInSeiban) return entries;
+      return entries.filter(e => !isNoSeibanEntry(e));
+    }
+
     function detectDataMode(text) {
       const lines = text.split(/\r?\n/);
       const found = scanDataHeaders(lines);
@@ -1823,6 +1923,12 @@
       cachedSummaryText = buildDepartmentSummaryText();
     }
 
+    function onIncludeNoSeibanChange() {
+      includeNoSeibanInSeiban = document.getElementById('includeNoSeibanInSeiban').checked;
+      renderDepartmentTab('seiban');
+      cachedSummaryText = buildDepartmentSummaryText();
+    }
+
     function onDeptSearchInput(tabId, value) {
       clearTimeout(deptSearchTimers[tabId]);
       deptSearchTimers[tabId] = setTimeout(function() {
@@ -1832,9 +1938,11 @@
     }
 
     function filterDeptEntries(tabId, entries) {
+      let filtered = entries;
+      if (tabId === 'seiban') filtered = filterSeibanEntries(filtered);
       const q = deptSearchQueries[tabId];
-      if (!q) return entries;
-      return entries.filter(e => e.searchText && e.searchText.toLowerCase().includes(q));
+      if (!q) return filtered;
+      return filtered.filter(e => e.searchText && e.searchText.toLowerCase().includes(q));
     }
 
     function buildDeptUtilizationRowHtml(entry, monthKeys) {
@@ -1870,6 +1978,17 @@
             onclick="openDetailModal(this)" title="クリックで詳細を表示">
           <td class="col-client-wide px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
           ${monthCells}
+          <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
+          <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(entry.hours)}</td>
+        </tr>`;
+    }
+
+    function buildDeptOfficeRowHtml(entry) {
+      return `
+        <tr class="summary-row hover:bg-indigo-50 transition-colors duration-150"
+            data-mode="department" data-tab="office" data-key="${escapeHtml(entry.key)}"
+            onclick="openDetailModal(this)" title="クリックで詳細を表示">
+          <td class="col-label px-4 py-2.5 text-sm text-slate-700 font-medium align-top">${escapeHtml(entry.label)}</td>
           <td class="col-mid px-4 py-2.5 text-sm text-slate-700 text-right whitespace-nowrap align-top">${entry.staffCount}</td>
           <td class="col-hours px-4 py-2.5 text-sm text-slate-900 text-right whitespace-nowrap align-top">${formatHours(entry.hours)}</td>
         </tr>`;
@@ -2081,7 +2200,7 @@
       } else if (tabId === 'client') {
         body.innerHTML = entries.map(e => buildDeptClientRowHtml(e, monthKeys)).join('');
       } else {
-        const builders = { seiban: buildDeptSeibanRowHtml, monthly: buildDeptMonthlyRowHtml };
+        const builders = { seiban: buildDeptSeibanRowHtml, office: buildDeptOfficeRowHtml, monthly: buildDeptMonthlyRowHtml };
         body.innerHTML = entries.map(builders[tabId]).join('');
       }
 
@@ -2091,8 +2210,8 @@
         renderDeptMonthlyChart(entries);
       } else if (tabId === 'seiban') {
         renderDeptStaffBreakdownChart('seiban', entries);
-      } else if (tabId === 'client') {
-        renderDeptStaffBreakdownChart('client', entries);
+      } else if (tabId === 'client' || tabId === 'office') {
+        renderDeptStaffBreakdownChart(tabId, entries);
       }
     }
 
@@ -2100,6 +2219,7 @@
       const staffMap = {};
       const clientMap = {};
       const seibanMap = {};
+      const officeMap = {};
       const monthlyMap = {};
 
       records.forEach(r => {
@@ -2141,6 +2261,15 @@
           if (r.client) seibanMap[r.seiban].clients[r.client] = (seibanMap[r.seiban].clients[r.client] || 0) + r.hours;
           if (r.productName) {
             seibanMap[r.seiban].products[r.productName] = (seibanMap[r.seiban].products[r.productName] || 0) + r.hours;
+          }
+        }
+        const officeName = resolveOfficeFromRecord(r);
+        if (officeName) {
+          if (!officeMap[officeName]) officeMap[officeName] = { hours: 0, staff: new Set(), staffHours: {} };
+          officeMap[officeName].hours += r.hours;
+          if (r.staffKey) {
+            officeMap[officeName].staff.add(r.staffKey);
+            officeMap[officeName].staffHours[r.staffKey] = (officeMap[officeName].staffHours[r.staffKey] || 0) + r.hours;
           }
         }
         if (r.monthKey) {
@@ -2233,6 +2362,15 @@
         };
       }).sort((a, b) => b.hours - a.hours);
 
+      const office = Object.entries(officeMap).map(([key, val]) => ({
+        key,
+        label: key,
+        hours: val.hours,
+        staffCount: val.staff.size,
+        staffHours: val.staffHours,
+        searchText: key
+      })).sort((a, b) => b.hours - a.hours);
+
       const monthly = Object.entries(monthlyMap)
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([monthKey, val]) => ({
@@ -2245,7 +2383,7 @@
           searchText: formatMonthLabel(monthKey)
         }));
 
-      return { utilization, client, seiban, monthly, staffclient, staffworktype };
+      return { utilization, client, seiban, office, monthly, staffclient, staffworktype };
     }
 
     function renderDepartmentSummary() {
@@ -2253,7 +2391,7 @@
       const filtered = filterRecordsByPeriod(allDeptRecords, deptPeriodFilter.start, deptPeriodFilter.end);
       deptAnalysisMonthKeys = getVisibleAnalysisMonthKeys(filtered);
       deptSummaryCache = computeDepartmentSummaries(filtered);
-      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(renderDepartmentTab);
+      ['utilization', 'client', 'seiban', 'office', 'monthly', 'staffclient', 'staffworktype'].forEach(renderDepartmentTab);
     }
 
     function destroyDeptSummaryCharts() {
@@ -2719,7 +2857,8 @@
 
       let text = `【部門・グループ】${deptMeta.scopeLabel || ''}\n`;
       text += `【分析期間】${periodLabel}\n`;
-      text += `【TP/TD製番の売上無・特定無】${includeTpTdNonBillable ? '稼働に含める' : '稼働に含めない'}\n\n`;
+      text += `【TP/TD製番の売上無・特定無】${includeTpTdNonBillable ? '稼働に含める' : '稼働に含めない'}\n`;
+      text += `【製番別・製番なし】${includeNoSeibanInSeiban ? '含める' : '含めない'}\n\n`;
 
       text += '【個人別・稼働率】\n';
       sums.utilization.slice(0, AI_SUMMARY_LIMITS.deptStaff).forEach(e => {
@@ -2732,7 +2871,12 @@
       });
 
       text += '\n【製番別】\n';
-      sums.seiban.slice(0, AI_SUMMARY_LIMITS.deptSeiban).forEach(e => {
+      filterSeibanEntries(sums.seiban).slice(0, AI_SUMMARY_LIMITS.deptSeiban).forEach(e => {
+        text += `${e.label}: ${formatHours(e.hours)}時間（${e.staffCount}名）\n`;
+      });
+
+      text += '\n【事業所別】\n';
+      sums.office.slice(0, AI_SUMMARY_LIMITS.deptOffice).forEach(e => {
         text += `${e.label}: ${formatHours(e.hours)}時間（${e.staffCount}名）\n`;
       });
 
@@ -2832,6 +2976,7 @@
           if (tab === 'utilization') return r.staffKey === key;
           if (tab === 'client') return r.client === key;
           if (tab === 'seiban') return r.seiban === key;
+          if (tab === 'office') return resolveOfficeFromRecord(r) === key;
           if (tab === 'monthly') return r.monthKey === key;
           return false;
         });
@@ -3280,10 +3425,13 @@
       deptPeriodFilter = { start: '', end: '' };
       deptAnalysisMonthKeys = [];
       includeTpTdNonBillable = false;
+      includeNoSeibanInSeiban = false;
       const tpTdCheck = document.getElementById('includeTpTdNonBillable');
       if (tpTdCheck) tpTdCheck.checked = false;
-      deptSearchQueries = { utilization: '', client: '', seiban: '', monthly: '', staffclient: '', staffworktype: '' };
-      ['utilization', 'client', 'seiban', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
+      const noSeibanCheck = document.getElementById('includeNoSeibanInSeiban');
+      if (noSeibanCheck) noSeibanCheck.checked = false;
+      deptSearchQueries = { utilization: '', client: '', seiban: '', office: '', monthly: '', staffclient: '', staffworktype: '' };
+      ['utilization', 'client', 'seiban', 'office', 'monthly', 'staffclient', 'staffworktype'].forEach(function(id) {
         const el = document.getElementById('deptSearch-' + id);
         if (el) el.value = '';
       });
