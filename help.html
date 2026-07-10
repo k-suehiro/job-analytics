@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WDR工数ビューア - ヘルプ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    html { scroll-behavior: smooth; }
+    .help-nav a { scroll-margin-top: 5rem; }
+    .help-section { scroll-margin-top: 5rem; }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 sticky top-0 z-40 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2 flex-wrap">
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>WDR工数ビューア ヘルプ</span>
+          <span class="text-xs font-normal text-blue-200/90 bg-white/10 px-2 py-0.5 rounded">v2.2.15</span>
+        </h1>
+        <p class="text-sm text-blue-100 mt-1 hidden sm:block">使い方ガイド・画面の見方・よくある質問</p>
+      </div>
+      <a id="backToAppLink" href="index.html"
+        class="shrink-0 text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <span class="whitespace-nowrap">アプリに戻る</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
+
+      <nav class="help-nav hidden lg:block">
+        <div class="sticky top-24 bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">目次</p>
+          <ul class="space-y-2 text-slate-600">
+            <li><a href="#overview" class="hover:text-indigo-600 transition">このアプリについて</a></li>
+            <li><a href="#quickstart" class="hover:text-indigo-600 transition">かんたんな使い方</a></li>
+            <li><a href="#download" class="hover:text-indigo-600 transition">データの準備</a></li>
+            <li><a href="#upload" class="hover:text-indigo-600 transition">ファイルの読み込み</a></li>
+            <li><a href="#project-mode" class="hover:text-indigo-600 transition">製番別モード</a></li>
+            <li><a href="#department-mode" class="hover:text-indigo-600 transition">部門・グループ別モード</a></li>
+            <li><a href="#detail-modal" class="hover:text-indigo-600 transition">詳細モーダル</a></li>
+            <li><a href="#options" class="hover:text-indigo-600 transition">分析期間とオプション</a></li>
+            <li><a href="#office-rules" class="hover:text-indigo-600 transition">事業所別の判定</a></li>
+            <li><a href="#ai-analysis" class="hover:text-indigo-600 transition">AI分析</a></li>
+            <li><a href="#faq" class="hover:text-indigo-600 transition">よくある質問</a></li>
+            <li><a href="#glossary" class="hover:text-indigo-600 transition">用語集</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="space-y-8 min-w-0">
+
+        <section id="overview" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-3">このアプリについて</h2>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            <strong class="text-slate-800">WDR工数ビューア</strong>は、WDR（Web Daily Report）からダウンロードした工数テキストを読み込み、集計・グラフ表示・AIによる総括コメント生成を行う Web アプリです。Excel で手作業していた集計や俯瞰を、ファイルを選ぶだけで素早く行えます。
+          </p>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            アップロードしたファイルの内容をもとに、次の2種類の分析モードを<strong class="text-slate-800">自動判定</strong>します。
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b border-slate-200">モード</th>
+                  <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b border-slate-200">用途</th>
+                  <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b border-slate-200">主な集計</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="px-4 py-3 font-medium text-blue-700 whitespace-nowrap">製番別</td>
+                  <td class="px-4 py-3 text-slate-600">1案件（製番）の工数分析</td>
+                  <td class="px-4 py-3 text-slate-600">拠点・スタッフ別 / 作業種別 / 月別</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-medium text-indigo-700 whitespace-nowrap">部門・グループ別</td>
+                  <td class="px-4 py-3 text-slate-600">部門・グループの稼働分析</td>
+                  <td class="px-4 py-3 text-slate-600">個人別・稼働率 / クライアント別 / 製番別 / 事業所別 / 月別 など</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="quickstart" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">かんたんな使い方</h2>
+          <ol class="space-y-4">
+            <li class="flex gap-3 text-sm text-slate-600">
+              <span class="step-num bg-blue-600 text-white">1</span>
+              <span class="pt-0.5">WDR から工数テキスト（TXT / TSV / CSV）をダウンロードします。</span>
+            </li>
+            <li class="flex gap-3 text-sm text-slate-600">
+              <span class="step-num bg-blue-600 text-white">2</span>
+              <span class="pt-0.5">アプリのファイル選択欄でダウンロードしたファイルを選びます（ドラッグ＆ドロップも可）。</span>
+            </li>
+            <li class="flex gap-3 text-sm text-slate-600">
+              <span class="step-num bg-blue-600 text-white">3</span>
+              <span class="pt-0.5"><strong class="text-slate-800">集計する</strong> をクリックします。</span>
+            </li>
+            <li class="flex gap-3 text-sm text-slate-600">
+              <span class="step-num bg-blue-600 text-white">4</span>
+              <span class="pt-0.5">表示されたタブを切り替えて、グラフと一覧で工数の傾向を確認します。</span>
+            </li>
+            <li class="flex gap-3 text-sm text-slate-600">
+              <span class="step-num bg-indigo-600 text-white">5</span>
+              <span class="pt-0.5">（任意）一覧の行をクリックすると明細が表示されます。（任意）AI分析で総括コメントを生成できます。</span>
+            </li>
+          </ol>
+          <div class="mt-5 rounded-lg border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm text-amber-900">
+            <strong>ヒント：</strong>別のファイルを分析したいときは、画面上部の <strong>テキストデータを読み込む</strong> から最初の画面に戻れます。
+          </div>
+        </section>
+
+        <section id="download" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">データの準備（WDR からのダウンロード）</h2>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-3">マネージャーの場合</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+              <p class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-600 text-white text-xs">A</span>
+                製番別データ
+              </p>
+              <ol class="space-y-2 text-sm text-slate-600 list-decimal list-inside">
+                <li>管理メニューの「検索」で製番を検索</li>
+                <li>検索結果の製番をクリックして詳細モーダルを開く</li>
+                <li>「ダウンロード」でテキストを保存</li>
+              </ol>
+            </div>
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+              <p class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-indigo-600 text-white text-xs">B</span>
+                部門・グループ別データ
+              </p>
+              <ol class="space-y-2 text-sm text-slate-600 list-decimal list-inside">
+                <li>管理メニューで対象の部門またはグループを選択</li>
+                <li>分析したい期間を設定</li>
+                <li>「ダウンロード」でテキストを保存</li>
+              </ol>
+            </div>
+          </div>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-3">マネージャー以外の場合</h3>
+          <div class="rounded-lg border border-blue-100 bg-blue-50/50 p-4 text-sm text-slate-600">
+            <p class="mb-2">製番別データ（A）のみ取得できます。</p>
+            <ol class="space-y-1 list-decimal list-inside">
+              <li>登録済み日報の製番をクリックして詳細モーダルを開く</li>
+              <li>「ダウンロード」でテキストを保存</li>
+            </ol>
+          </div>
+
+          <div class="mt-5 text-sm text-slate-600 leading-relaxed">
+            <p class="mb-2"><strong class="text-slate-800">対応ファイル形式</strong></p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>拡張子：TXT / TSV / CSV</li>
+              <li>文字コード：UTF-8 または Shift_JIS（自動判定）</li>
+              <li>区切り：タブ区切り（TSV）を想定（WDR の標準エクスポート形式）</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="upload" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">ファイルの読み込みと集計</h2>
+          <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+            <p>ファイル選択欄をクリックするか、ファイルをドラッグ＆ドロップして選択します。選択後、ファイル名が表示されます。</p>
+            <p><strong class="text-slate-800">集計する</strong> を押すと読み込みと集計が始まります。ヘッダー行の列名から列の意味を自動判定するため、WDR からそのままダウンロードしたファイルを使えます。</p>
+            <p>集計が完了すると、ファイルの種類に応じたモード（製番別 / 部門・グループ別）の結果が表示されます。画面上部のバッジでも現在のモードを確認できます。</p>
+          </div>
+        </section>
+
+        <section id="project-mode" class="help-section bg-white border border-blue-100 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">製番別モード</h2>
+          <p class="text-sm text-slate-500 mb-4">1つの製番（案件）に関する工数を分析します。</p>
+
+          <div class="space-y-4">
+            <div class="rounded-lg border border-slate-100 bg-slate-50/80 p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-2">拠点・スタッフ別</h3>
+              <p class="text-sm text-slate-600">事業所とスタッフ名の組み合わせごとの合計工数を表示します。誰がどれだけ関わったかを把握できます。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 bg-slate-50/80 p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-2">作業種別</h3>
+              <p class="text-sm text-slate-600">デザイン・入稿・校正など、作業種別ごとの工数配分を表示します。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 bg-slate-50/80 p-4">
+              <h3 class="text-sm font-semibold text-slate-800 mb-2">月別</h3>
+              <p class="text-sm text-slate-600">データ期間内の各月の合計工数を表示します。繁忙期・閑散期の把握に使えます。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="department-mode" class="help-section bg-white border border-indigo-100 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">部門・グループ別モード</h2>
+          <p class="text-sm text-slate-500 mb-4">部門やグループ単位の稼働状況を多角的に分析します。</p>
+
+          <div class="space-y-3 text-sm">
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">個人別・稼働率</h3>
+              <p class="text-slate-600">各メンバーの稼働時間・総時間・稼働率を表示。グラフでは売上「有」または特定「有」の稼働分（青紫）と、TP/TD オプション ON 時の追加稼働分（琥珀色）を色分けします。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">クライアント別</h3>
+              <p class="text-slate-600">クライアントごとの合計工数と担当人数。複数人が関与する場合は作業者別の積み上げグラフになります。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">製番別</h3>
+              <p class="text-slate-600">製番ごとの工数・担当人数・主なクライアント・品名を表示。製番が空の行は「製番なし」に集約されます。<strong>製番なしを含める</strong>チェック（デフォルト OFF）で表示の有無を切り替えられます。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">事業所別</h3>
+              <p class="text-slate-600">製番の先頭2桁などから事業所を判定し、事業所ごとに工数を集計します。判定ルールは<a href="#office-rules" class="text-indigo-600 hover:underline">事業所別の判定</a>を参照してください。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">月別</h3>
+              <p class="text-slate-600">月ごとの合計工数（棒グラフ）と平均稼働率（折れ線）を同時に表示します。</p>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-4">
+              <h3 class="font-semibold text-slate-800 mb-1">作業者別・クライアント / 作業者別・作業種別</h3>
+              <p class="text-slate-600">スタッフごとにクライアント構成または作業種別構成を円グラフで表示します。凡例に時間と割合（%）が表示されます。</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg border border-indigo-100 bg-indigo-50/60 px-4 py-3 text-sm text-slate-700">
+            <strong>月別列について：</strong>分析期間が2か月以上の場合、個人別・稼働率タブには各月の稼働率（%）列が、クライアント別タブには各月の合計時間（h）列が追加されます。
+          </div>
+        </section>
+
+        <section id="detail-modal" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">詳細モーダル</h2>
+          <div class="text-sm text-slate-600 leading-relaxed space-y-3">
+            <p>集計一覧の行をクリックすると、その行に含まれる<strong class="text-slate-800">明細データ</strong>がモーダルで開きます。</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>列ヘッダーをクリックすると、その列で昇順・降順に並び替えできます</li>
+              <li>作業内容・品名など長いテキストは2行で省略表示され、マウスを乗せると全文を確認できます</li>
+              <li>部門モードでは売上・特定の有無がバッジで表示されます</li>
+              <li>モーダル上部に件数・合計時間（稼働率タブでは稼働率も）が表示されます</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="options" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">分析期間とオプション</h2>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-2">分析期間フィルタ（部門モード）</h3>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            部門・グループ別モードでは、画面上部の<strong class="text-slate-800">分析期間</strong>で日付範囲を指定し、<strong class="text-slate-800">適用</strong>を押すとその期間内のデータだけで再集計します。デフォルトはファイルに含まれるデータ全体の期間です。
+          </p>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-2">TP/TD製番の売上無・特定無も稼働に含める</h3>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            分析期間の右側にあるチェックボックスです。ON にすると、製番が <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">TP</code> / <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">TD</code> で始まり、売上・特定が両方「無」の行も稼働時間に含めます。個人別・稼働率のグラフでは琥珀色で積み上げ表示されます。
+          </p>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-2">製番なしを含める（製番別タブ）</h3>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+            製番別タブ内のチェックボックスです。デフォルトでは「製番なし」の行をグラフ・一覧から<strong class="text-slate-800">除外</strong>します。製番なしのボリュームが大きい場合でも、個別製番の比較がしやすくなります。必要なときだけ ON にしてください。
+          </p>
+
+          <h3 class="text-sm font-semibold text-slate-800 mb-2">稼働率の計算式</h3>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 font-mono leading-relaxed">
+            稼働時間 = 売上「有」または特定「有」の行の作業時間の合計<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;（TP/TD オプション ON 時は該当行も加算）<br>
+            総時間 = 同一作業者の全行の作業時間の合計（期間内）<br>
+            稼働率 = 稼働時間 ÷ 総時間 × 100
+          </div>
+
+          <h3 class="text-sm font-semibold text-slate-800 mt-5 mb-2">キーワード絞り込み</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            各タブの検索欄にキーワードを入力すると、一覧とグラフがリアルタイムで絞り込まれます（製番・クライアント名・作業者名など）。
+          </p>
+        </section>
+
+        <section id="office-rules" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">事業所別の判定ルール</h2>
+          <p class="text-sm text-slate-600 mb-4">製番の先頭2桁（大文字・小文字は区別しません）などから事業所名を判定します。</p>
+          <div class="overflow-x-auto mb-5">
+            <table class="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b">先頭2桁</th>
+                  <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b">事業所</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-600">
+                <tr><td class="px-4 py-2.5 font-mono">TK, FK</td><td class="px-4 py-2.5">東京事業所</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">HM</td><td class="px-4 py-2.5">浜松事業所</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">NA</td><td class="px-4 py-2.5">名古屋事業所</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">MT</td><td class="px-4 py-2.5">松本事業所</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">OS</td><td class="px-4 py-2.5">大阪事業所</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">SL</td><td class="px-4 py-2.5">国内支援室CSC</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">MP</td><td class="px-4 py-2.5">クライアント名に「シープラス」または「大野印刷」→ シープラス、それ以外 → 海外事業部</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">TP, TD</td><td class="px-4 py-2.5">プロダクションセンター</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">EK</td><td class="px-4 py-2.5">品名の【…】から判定（下記）</td></tr>
+                <tr><td class="px-4 py-2.5 font-mono">HP</td><td class="px-4 py-2.5">国内支援室浜松プリントセンター</td></tr>
+                <tr><td class="px-4 py-2.5">製番なし</td><td class="px-4 py-2.5">製番なし</td></tr>
+                <tr><td class="px-4 py-2.5">上記以外</td><td class="px-4 py-2.5">その他</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-800 mb-2">EK 製番の品名【】判定</h3>
+          <ul class="text-sm text-slate-600 space-y-1 list-disc list-inside">
+            <li>【本社】【人事総務課】→ 人事総務部</li>
+            <li>【財務経理部】→ 財務経理部</li>
+            <li>【役員室】→ 役員室</li>
+            <li>【】なし → 人事総務部（本社扱い）</li>
+            <li>その他の【…】は括弧内の文字を事業所名として使用</li>
+          </ul>
+        </section>
+
+        <section id="ai-analysis" class="help-section bg-white border border-indigo-100 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">AI分析（任意機能）</h2>
+          <div class="text-sm text-slate-600 leading-relaxed space-y-4">
+            <p>集計結果のサマリー（明細行は含みません）を LLM に送信し、総括コメントを生成します。データの傾向把握や報告書作成のたたき台としてご利用ください。</p>
+
+            <div>
+              <p class="font-semibold text-slate-800 mb-2">使い方</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li>集計前：<strong class="text-slate-800">AI分析も実行する</strong> にチェック → 集計後に自動でデフォルト分析を実行</li>
+                <li>集計後：3つの分析ボタンから切り口を選んで実行</li>
+              </ul>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b">モード</th>
+                    <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b">分析ボタン</th>
+                    <th class="px-4 py-2.5 text-left font-semibold text-slate-700 border-b">自動実行（チェック ON 時）</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-600">
+                  <tr>
+                    <td class="px-4 py-2.5">製番別</td>
+                    <td class="px-4 py-2.5">業務サマリー / 偏り・集中度 / 気になる点</td>
+                    <td class="px-4 py-2.5">業務サマリー</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-2.5">部門別</td>
+                    <td class="px-4 py-2.5">チーム総括 / 個人・稼働率 / リスク・依存</td>
+                    <td class="px-4 py-2.5">チーム総括</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p class="font-semibold text-slate-800 mb-1">AI 設定（管理者向け）</p>
+              <p>ヘッダー右上の ⚙ ボタンは管理者のみ表示されます。GB10 / Gemini / LM Studio の切り替えや API 設定を行えます。設定はサーバーに保存され、全利用者に共通で適用されます。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">よくある質問</h2>
+          <dl class="space-y-5 text-sm">
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">データ形式を判定できないと表示される</dt>
+              <dd class="text-slate-600">ヘッダー行に「日付」「作業時間」「作業内容（または業務内容）」「担当者名（スタッフ/社員名など）」が含まれているか確認してください。WDR からそのままダウンロードしたファイルをお使いください。</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">部門モードで明細が空になる</dt>
+              <dd class="text-slate-600">ヘッダー行の直後にデータ行があるか確認してください。# で始まるメタ情報行の後にデータが続く形式が一般的です。</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">稼働率が想定と違う</dt>
+              <dd class="text-slate-600">売上・特定の「有/無」列の値、分析期間の設定、TP/TD オプションの ON/OFF を確認してください。期間を変更した場合はその期間内の行だけで再計算されます。</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">製番別グラフで棒が小さくて見づらい</dt>
+              <dd class="text-slate-600">製番別タブの「製番なしを含める」のチェックを OFF にしてください（デフォルト）。製番なしを除外すると個別製番の比較がしやすくなります。</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">画面のレイアウトが崩れる</dt>
+              <dd class="text-slate-600">社内ネットワークから Tailwind CSS の CDN にアクセスできるか確認してください。更新後はブラウザのハードリロード（Ctrl+Shift+R）をお試しください。</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-slate-800 mb-1">AI分析が失敗する</dt>
+              <dd class="text-slate-600">管理者に AI 設定（プロバイダ・API キー・URL）を確認してください。GB10 利用時はネットワーク到達性や Mixed Content の制約にも注意が必要です。</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section id="glossary" class="help-section bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-4">用語集</h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">製番</dt>
+              <dd class="text-slate-600 mt-1">製造番号。案件を識別するコードです。</dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">稼働率</dt>
+              <dd class="text-slate-600 mt-1">売上または特定が「有」の時間が、総作業時間に占める割合（部門モード）。</dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">売上 / 特定</dt>
+              <dd class="text-slate-600 mt-1">WDR の工数行に付くフラグ。「有」なら稼働（売上計上または特定作業）として扱います。</dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">TP/TD 製番</dt>
+              <dd class="text-slate-600 mt-1">製番が TP または TD で始まる案件。オプションで非稼働行も稼働に含められます。</dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">製番なし</dt>
+              <dd class="text-slate-600 mt-1">製番欄が空、または「なし」「無し」などと記載された行の集約ラベルです。</dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3 sm:col-span-2">
+              <dt class="font-semibold text-slate-800">GB10</dt>
+              <dd class="text-slate-600 mt-1 leading-relaxed">
+                NVIDIA の Grace Blackwell 世代に属する AI 向け統合チップです。CPU と GPU を高帯域で統合した構成により、生成 AI、LLM 推論などをローカル環境で効率よく実行できます。
+                ITDC で GB10 を購入し、vLLM を導入して Qwen3.6 を API として運用しています。これにより、クラウド依存を抑えつつ、社内での AI 推論基盤を手元の環境で安定運用できる状態にしています。
+                本アプリの AI 分析では、この社内 API（GB10 プロバイダ）をデフォルトとして利用できます。
+              </dd>
+            </div>
+            <div class="rounded-lg border border-slate-100 p-3">
+              <dt class="font-semibold text-slate-800">WDR</dt>
+              <dd class="text-slate-600 mt-1">Web Daily Report。日報・工数の登録・管理システムです。</dd>
+            </div>
+          </dl>
+        </section>
+
+        <footer class="text-center text-xs text-slate-400 pb-8 pt-2">
+          WDR工数ビューア v2.2.15
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function initHelpLinks() {
+      var back = document.getElementById('backToAppLink');
+      if (!back) return;
+      if (/script\.google\.com/i.test(location.hostname)) {
+        var u = new URL(location.href);
+        u.searchParams.delete('page');
+        var qs = u.searchParams.toString();
+        back.href = u.pathname + (qs ? '?' + qs : '');
+      }
+    })();
+  </script>
+</body>
+</html>
