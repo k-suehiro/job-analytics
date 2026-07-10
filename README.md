@@ -118,6 +118,8 @@ GB10 利用時は **HTML を HTTP で配信** することを推奨します（M
 
 エンドユーザー向けの詳細ガイドは **[help.html](help.html)**（アプリ画面上部の「ヘルプ」リンク、GAS では `?page=help`）を参照してください。技術仕様は **[design.html](design.html)**（「仕様書」リンク、GAS では `?page=design`）を参照してください。
 
+いずれも PC 幅（`lg` 以上）では左に目次が表示され、本文をスクロールすると現在の見出しが目次で強調表示されます（スクロール連動）。
+
 ### 基本フロー
 
 1. WDR から工数テキストをダウンロード（製番別 or 部門・グループ別）
@@ -278,9 +280,21 @@ npm run build:design
 - **出力**: `design.html`（社内共有・レビュー用）
 - **Clasp push 対象**: `index.html` / `help.html` / `design.html` / `main.gs` / `appsscript.json` のみ（`README.md` / `design.template.html` は含まない）
 
+`design.template.html`（枠組み・目次連動スクリプト等）を変更した場合も `npm run build:design` のあと `design.html` を clasp push してください。
+
+### リリース手順（まとめ）
+
+1. アプリ修正（`index.html` / `help.html` / `main.gs` 等）
+2. 仕様・ドキュメントの変更があれば **README.md** を更新
+3. README または `design.template.html` を変えたら `npm run build:design` で **design.html** を再生成
+4. GitHub に push
+5. `clasp push`（変更が検出されない場合は `clasp push --force`）
+6. GAS で Web アプリを再デプロイ
+7. ブラウザで確認（アプリ → ヘルプ `?page=help` / 仕様書 `?page=design`）
+
 ### 更新の反映
 
-- **Clasp**: `clasp push` 後、GAS の Web アプリを再デプロイ（または最新版を利用）
+- **Clasp**: `clasp push`（必要なら `--force`）後、GAS の Web アプリを再デプロイ（または最新版を利用）
 - **オンプレ**: `index.html` を差し替え、利用者にハードリロード（`Ctrl+Shift+R`）を案内
 
 ### 外部 CDN
@@ -311,6 +325,8 @@ npm run build:design
 - GAS 環境でヘルプリンクが遷移しない問題を修正（配信 URL をサーバーから注入、`?page=help` + `target="_top"`）
 - GAS テンプレート処理でヘルプページが SyntaxError になる問題を修正
 - アプリ・ヘルプから仕様書（`design.html`）へリンク（GAS では `?page=design`）
+- README.md から仕様書 HTML（`design.html`）を自動生成するビルド（`npm run build:design`）
+- ヘルプ・仕様書の目次スクロール連動（開いた直後に本文が勝手にスクロールしないよう修正済み）
 
 ### v2.2.14
 
