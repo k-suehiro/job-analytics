@@ -69,7 +69,7 @@
     <div class="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
 
       <nav class="help-nav hidden lg:block">
-        <div class="sticky top-24 bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-sm">
+        <div class="sticky top-24 bg-white border border-slate-200 rounded-xl p-4 shadow-sm text-sm max-h-[calc(100vh-7rem)] overflow-y-auto">
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">目次</p>
           <ul class="space-y-2 text-slate-600">
             <li><a href="#overview" class="toc-link hover:text-indigo-600 transition">このアプリについて</a></li>
@@ -506,46 +506,53 @@
       }).filter(Boolean);
       if (!items.length) return;
 
-      items.sort(function(a, b) { return a.el.offsetTop - b.el.offsetTop; });
       var scrollBox = navRoot.querySelector('.overflow-y-auto') || navRoot;
       var ticking = false;
 
-      function setActive(id) {
+      function elementTop(el) {
+        return el.getBoundingClientRect().top + window.pageYOffset;
+      }
+
+      function scrollNavToActiveLink(link) {
+        if (!link || !scrollBox || scrollBox.scrollHeight <= scrollBox.clientHeight + 1) return;
+        var cRect = scrollBox.getBoundingClientRect();
+        var lRect = link.getBoundingClientRect();
+        if (lRect.top < cRect.top) {
+          scrollBox.scrollTop -= cRect.top - lRect.top;
+        } else if (lRect.bottom > cRect.bottom) {
+          scrollBox.scrollTop += lRect.bottom - cRect.bottom;
+        }
+      }
+
+      function setActive(id, scrollNav) {
         links.forEach(function(link) {
           var active = link.getAttribute('href') === '#' + id;
           link.classList.toggle('toc-active', active);
-          if (active) {
-            var linkTop = link.offsetTop;
-            var boxTop = scrollBox.scrollTop;
-            var boxBottom = boxTop + scrollBox.clientHeight;
-            if (linkTop < boxTop || linkTop + link.offsetHeight > boxBottom) {
-              link.scrollIntoView({ block: 'nearest' });
-            }
-          }
+          if (active && scrollNav) scrollNavToActiveLink(link);
         });
       }
 
-      function update() {
+      function update(scrollNav) {
         ticking = false;
         var offset = 112;
         var pos = window.scrollY + offset;
         var activeId = items[0].id;
-        for (var i = 0; i < items.length; i++) {
-          if (items[i].el.offsetTop <= pos) activeId = items[i].id;
-        }
-        setActive(activeId);
+        items.forEach(function(item) {
+          if (elementTop(item.el) <= pos) activeId = item.id;
+        });
+        setActive(activeId, scrollNav);
       }
 
       function onScroll() {
         if (!ticking) {
           ticking = true;
-          window.requestAnimationFrame(update);
+          window.requestAnimationFrame(function() { update(true); });
         }
       }
 
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
-      update();
+      window.addEventListener('resize', function() { update(false); });
+      update(false);
     })();
   </script>
 </body>

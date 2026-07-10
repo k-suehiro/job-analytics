@@ -64,7 +64,7 @@
           <span>WDR工数ビューア 仕様書</span>
           <span class="text-xs font-normal text-slate-300 bg-white/10 px-2 py-0.5 rounded">v2.2.15</span>
         </h1>
-        <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · 2026-07-10 18:57</p>
+        <p class="text-sm text-slate-300 mt-1 hidden sm:block">README.md から自動生成 · 2026-07-10 19:04</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <a id="helpPageLink" href="help.html" target="_top" class="text-sm font-medium text-white/90 hover:text-white border border-white/30 hover:border-white/50 px-3 py-1.5 rounded-lg hover:bg-white/10 transition whitespace-nowrap">ヘルプ</a>
@@ -719,52 +719,59 @@ npm run build:design
       if (!links.length) return;
 
       var items = links.map(function(link) {
-        var id = link.getAttribute('href').slice(1);
+        var id = decodeURIComponent(link.getAttribute('href').slice(1));
         var el = document.getElementById(id);
         return el ? { id: id, el: el, link: link } : null;
       }).filter(Boolean);
       if (!items.length) return;
 
-      items.sort(function(a, b) { return a.el.offsetTop - b.el.offsetTop; });
       var scrollBox = navRoot.querySelector('.overflow-y-auto') || navRoot;
       var ticking = false;
 
-      function setActive(id) {
+      function elementTop(el) {
+        return el.getBoundingClientRect().top + window.pageYOffset;
+      }
+
+      function scrollNavToActiveLink(link) {
+        if (!link || !scrollBox || scrollBox.scrollHeight <= scrollBox.clientHeight + 1) return;
+        var cRect = scrollBox.getBoundingClientRect();
+        var lRect = link.getBoundingClientRect();
+        if (lRect.top < cRect.top) {
+          scrollBox.scrollTop -= cRect.top - lRect.top;
+        } else if (lRect.bottom > cRect.bottom) {
+          scrollBox.scrollTop += lRect.bottom - cRect.bottom;
+        }
+      }
+
+      function setActive(id, scrollNav) {
         links.forEach(function(link) {
-          var active = link.getAttribute('href') === '#' + id;
+          var active = decodeURIComponent(link.getAttribute('href').slice(1)) === id;
           link.classList.toggle('toc-active', active);
-          if (active) {
-            var linkTop = link.offsetTop;
-            var boxTop = scrollBox.scrollTop;
-            var boxBottom = boxTop + scrollBox.clientHeight;
-            if (linkTop < boxTop || linkTop + link.offsetHeight > boxBottom) {
-              link.scrollIntoView({ block: 'nearest' });
-            }
-          }
+          if (active && scrollNav) scrollNavToActiveLink(link);
         });
       }
 
-      function update() {
+      function update(scrollNav) {
         ticking = false;
         var offset = 112;
         var pos = window.scrollY + offset;
         var activeId = items[0].id;
-        for (var i = 0; i < items.length; i++) {
-          if (items[i].el.offsetTop <= pos) activeId = items[i].id;
-        }
-        setActive(activeId);
+        items.forEach(function(item) {
+          if (elementTop(item.el) <= pos) activeId = item.id;
+        });
+        setActive(activeId, scrollNav);
       }
 
       function onScroll() {
         if (!ticking) {
           ticking = true;
-          window.requestAnimationFrame(update);
+          window.requestAnimationFrame(function() { update(true); });
         }
       }
 
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
-      update();
+      window.addEventListener('resize', function() { update(false); });
+      update(false);
     })();
   </script>
 </body>
